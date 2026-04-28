@@ -126,6 +126,37 @@ jobs:
           echo "release_version=$release_version" >> "$GITHUB_ENV"
           echo "app_version=$app_version" >> "$GITHUB_ENV"
 
+      - name: Patch Android Kotlin plugin version
+        run: |
+          target_kotlin_version="2.2.0"
+
+          if [ -f android/settings.gradle ]; then
+            sed -i -E \
+              "s/id \"org.jetbrains.kotlin.android\" version \"[^\"]+\"/id \"org.jetbrains.kotlin.android\" version \"$target_kotlin_version\"/g" \
+              android/settings.gradle
+            sed -i -E \
+              "s/id 'org.jetbrains.kotlin.android' version '[^']+'/id 'org.jetbrains.kotlin.android' version '$target_kotlin_version'/g" \
+              android/settings.gradle
+          fi
+
+          if [ -f android/build.gradle ]; then
+            sed -i -E \
+              "s/ext\.kotlin_version = '([^']+)'/ext.kotlin_version = '$target_kotlin_version'/g" \
+              android/build.gradle
+            sed -i -E \
+              's/org.jetbrains.kotlin:kotlin-gradle-plugin:[^"]+/org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.0/g' \
+              android/build.gradle
+          fi
+
+          if ! grep -R -n \
+            -e "org.jetbrains.kotlin.android\" version \"$target_kotlin_version\"" \
+            -e "org.jetbrains.kotlin.android' version '$target_kotlin_version'" \
+            -e "ext.kotlin_version = '$target_kotlin_version'" \
+            android/settings.gradle android/build.gradle 2>/dev/null; then
+            echo "Failed to patch Kotlin plugin version to $target_kotlin_version."
+            exit 1
+          fi
+
       - name: Release preflight checks
         run: |
           test -f pubspec.yaml
