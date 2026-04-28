@@ -77,18 +77,6 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Patch package_info_plus Gradle for CI compatibility
-        run: |
-          plugin_gradle="$(find "$HOME/.pub-cache/hosted/pub.dev" -maxdepth 3 -type f -path "*/package_info_plus-*/android/build.gradle" | sort | tail -n1)"
-          if [ -z "$plugin_gradle" ]; then
-            echo "package_info_plus gradle file not found in pub cache."
-            exit 1
-          fi
-          sed -i 's/compileSdkVersion flutter.compileSdkVersion/compileSdkVersion 34/g' "$plugin_gradle"
-          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' "$plugin_gradle"
-          sed -i 's/targetSdkVersion flutter.targetSdkVersion/targetSdkVersion 34/g' "$plugin_gradle"
-          echo "Patched: $plugin_gradle"
-
       - name: Prepare Android platform
         run: |
           rm -rf /tmp/finsage_app_backup
@@ -198,6 +186,23 @@ jobs:
           keyAlias=$KEY_ALIAS
           storeFile=fin_sage.keystore
           EOT
+
+      - name: Patch package_info_plus Gradle for CI compatibility
+        run: |
+          plugin_gradle="$(find "$HOME/.pub-cache/hosted/pub.dev" -type f -path "*/package_info_plus-*/android/build.gradle" | sort | tail -n1)"
+          if [ -z "$plugin_gradle" ]; then
+            echo "package_info_plus gradle file not found in pub cache."
+            exit 1
+          fi
+          sed -i 's/compileSdkVersion flutter.compileSdkVersion/compileSdkVersion 34/g' "$plugin_gradle"
+          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' "$plugin_gradle"
+          sed -i 's/targetSdkVersion flutter.targetSdkVersion/targetSdkVersion 34/g' "$plugin_gradle"
+          if grep -q "compileSdkVersion flutter.compileSdkVersion" "$plugin_gradle"; then
+            echo "Patch did not apply as expected."
+            exit 1
+          fi
+          echo "Patched: $plugin_gradle"
+          grep -n "compileSdkVersion\\|minSdkVersion\\|targetSdkVersion" "$plugin_gradle"
 
       - name: Build release APK
         run: |
