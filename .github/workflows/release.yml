@@ -195,9 +195,12 @@ jobs:
             exit 1
           fi
           sed -i 's/compileSdkVersion flutter.compileSdkVersion/compileSdkVersion 34/g' "$plugin_gradle"
+          sed -i 's/compileSdk = flutter.compileSdkVersion/compileSdk = 34/g' "$plugin_gradle"
           sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' "$plugin_gradle"
+          sed -i 's/minSdk = flutter.minSdkVersion/minSdk = 21/g' "$plugin_gradle"
           sed -i 's/targetSdkVersion flutter.targetSdkVersion/targetSdkVersion 34/g' "$plugin_gradle"
-          if grep -q "compileSdkVersion flutter.compileSdkVersion" "$plugin_gradle"; then
+          sed -i 's/targetSdk = flutter.targetSdkVersion/targetSdk = 34/g' "$plugin_gradle"
+          if grep -q "compileSdkVersion flutter.compileSdkVersion\\|compileSdk = flutter.compileSdkVersion" "$plugin_gradle"; then
             echo "Patch did not apply as expected."
             exit 1
           fi
