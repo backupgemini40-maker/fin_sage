@@ -49,11 +49,6 @@ jobs:
   android_build:
     runs-on: ubuntu-latest
     needs: tests
-    outputs:
-      release_version: ${{ steps.meta.outputs.release_version }}
-      app_version: ${{ steps.meta.outputs.app_version }}
-      apk_name: ${{ steps.meta.outputs.apk_name }}
-      apk_sha_name: ${{ steps.meta.outputs.apk_sha_name }}
     env:
       KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
       KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASS }}
@@ -83,7 +78,7 @@ jobs:
         run: flutter pub get
 
       - name: Prepare Android platform
-        run: flutter create . --platforms=android --project-name fin_sage
+        run: flutter create . --platforms=android --project-name fin_sage --org com.financeapp --overwrite
 
       - name: Resolve release metadata
         id: meta
@@ -94,10 +89,8 @@ jobs:
             echo "Cannot parse semantic version from pubspec.yaml"
             exit 1
           fi
-          echo "release_version=$release_version" >> "$GITHUB_OUTPUT"
-          echo "app_version=$app_version" >> "$GITHUB_OUTPUT"
-          echo "apk_name=finsage-v${release_version}-release.apk" >> "$GITHUB_OUTPUT"
-          echo "apk_sha_name=finsage-v${release_version}-release.apk.sha256" >> "$GITHUB_OUTPUT"
+          echo "release_version=$release_version" >> "$GITHUB_ENV"
+          echo "app_version=$app_version" >> "$GITHUB_ENV"
 
       - name: Release preflight checks
         run: |
@@ -160,7 +153,7 @@ jobs:
       - name: Build release APK
         run: |
           flutter build apk --release \
-            --dart-define=APP_VERSION="${{ steps.meta.outputs.app_version }}" \
+            --dart-define=APP_VERSION="$app_version" \
             --dart-define=GOOGLE_CLIENT_ID="$GOOGLE_CLIENT_ID" \
             --dart-define=GOOGLE_SERVER_CLIENT_ID="$GOOGLE_SERVER_CLIENT_ID"
 
@@ -171,17 +164,16 @@ jobs:
 
       - name: Generate APK checksum
         run: |
-          cp build/app/outputs/flutter-apk/app-release.apk "build/app/outputs/flutter-apk/${{ steps.meta.outputs.apk_name }}"
-          apk_hash="$(sha256sum "build/app/outputs/flutter-apk/${{ steps.meta.outputs.apk_name }}" | cut -d ' ' -f1)"
-          echo "$apk_hash  ${{ steps.meta.outputs.apk_name }}" > "build/app/outputs/flutter-apk/${{ steps.meta.outputs.apk_sha_name }}"
+          apk_hash="$(sha256sum build/app/outputs/flutter-apk/app-release.apk | cut -d ' ' -f1)"
+          echo "$apk_hash  app-release.apk" > build/app/outputs/flutter-apk/app-release.apk.sha256
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v7
         with:
           name: finsage-release-apk
           path: |
-            build/app/outputs/flutter-apk/${{ steps.meta.outputs.apk_name }}
-            build/app/outputs/flutter-apk/${{ steps.meta.outputs.apk_sha_name }}
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/flutter-apk/app-release.apk.sha256
 
       - name: Cleanup signing material
         if: always()
@@ -198,6 +190,9 @@ jobs:
       contents: write
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
       - name: Download APK artifact
         uses: actions/download-artifact@v5
         with:
@@ -206,20 +201,22 @@ jobs:
 
       - name: Prepare release notes
         run: |
-          checksum_file="artifacts/finsage-release-apk/${{ needs.android_build.outputs.apk_sha_name }}"
+          release_version="${GITHUB_REF_NAME#v}"
+          app_version="$(sed -n 's/^version: \([^[:space:]]\+\).*/\1/p' pubspec.yaml | head -n1)"
+          checksum_file="artifacts/finsage-release-apk/app-release.apk.sha256"
           checksum_value="$(cut -d ' ' -f1 "$checksum_file")"
           cat <<EOF > /tmp/release_body.md
-          FinSage release v${{ needs.android_build.outputs.release_version }}
-          App version: \`${{ needs.android_build.outputs.app_version }}\`
+          FinSage release v${release_version}
+          App version: \`${app_version}\`
 
-          APK file: \`${{ needs.android_build.outputs.apk_name }}\`
+          APK file: \`app-release.apk\`
           SHA256: \`$checksum_value\`
           EOF
 
       - name: Verify downloaded release artifact checksum
         run: |
-          checksum_file="artifacts/finsage-release-apk/${{ needs.android_build.outputs.apk_sha_name }}"
-          apk_file="artifacts/finsage-release-apk/${{ needs.android_build.outputs.apk_name }}"
+          checksum_file="artifacts/finsage-release-apk/app-release.apk.sha256"
+          apk_file="artifacts/finsage-release-apk/app-release.apk"
           expected_hash="$(cut -d ' ' -f1 "$checksum_file")"
           actual_hash="$(sha256sum "$apk_file" | cut -d ' ' -f1)"
           if [ "$expected_hash" != "$actual_hash" ]; then
@@ -233,7 +230,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            artifacts/finsage-release-apk/${{ needs.android_build.outputs.apk_name }}
-            artifacts/finsage-release-apk/${{ needs.android_build.outputs.apk_sha_name }}
+            artifacts/finsage-release-apk/app-release.apk
+            artifacts/finsage-release-apk/app-release.apk.sha256
           body_path: /tmp/release_body.md
           generate_release_notes: true
