@@ -16,6 +16,9 @@ Dokumen ini dipakai saat persiapan rilis, rilis, dan rollback produksi.
    - `GOOGLE_SERVER_CLIENT_ID`
 5. Pastikan `android/key.properties` dan `android/app/key.properties` tetap placeholder (`***`) di repo.
 6. Pastikan tidak ada file keystore real yang ter-track git (`android/app/*.keystore`).
+7. Pastikan package name Android untuk release CI sesuai Firebase/Google Cloud:
+   - Repository Variable `ANDROID_APP_ORG` (opsional, default `com.financeapp`)
+   - Application ID hasil build akan tampil di workflow summary (`release.yml`).
 
 ## 2. Release Steps
 

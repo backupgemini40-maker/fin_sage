@@ -9,7 +9,10 @@
 4. Buat OAuth Client ID:
    - Android client (package name + SHA-1 debug/release)
    - Web client (dipakai sebagai `GOOGLE_SERVER_CLIENT_ID`)
-   - Package name Android release workflow saat ini: `com.financeapp`
+   - Package name Android untuk release CI mengikuti:
+     - GitHub Variable `ANDROID_APP_ORG` + project name `fin_sage`
+     - default jika variable kosong: `com.financeapp.fin_sage`
+   - Set `ANDROID_APP_ORG` di Repository Variables agar konsisten dengan Firebase/Google Cloud.
 5. Isi GitHub Secrets untuk release Android:
    - `GOOGLE_CLIENT_ID`
    - `GOOGLE_SERVER_CLIENT_ID`

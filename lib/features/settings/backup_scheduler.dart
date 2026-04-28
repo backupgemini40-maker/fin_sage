@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:fin_sage/core/constants/app_constants.dart';
 import 'package:fin_sage/core/constants/google_auth_config.dart';
 import 'package:fin_sage/data/datasources/local/auto_backup_telemetry_storage.dart';
@@ -85,7 +87,7 @@ Future<bool> _performAutoBackup() async {
     const secureStorage = FlutterSecureStorage();
     final local = LocalDatabaseDataSource(SecureKeyService(secureStorage), DbMigrationService());
     final googleSignIn = GoogleSignIn(
-      clientId: GoogleAuthConfig.clientIdOrNull,
+      clientId: Platform.isAndroid ? null : GoogleAuthConfig.clientIdOrNull,
       serverClientId: GoogleAuthConfig.serverClientIdOrNull,
       scopes: const [
         'email',

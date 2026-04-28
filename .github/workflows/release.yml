@@ -56,6 +56,7 @@ jobs:
       KEY_PASS: ${{ secrets.KEY_PASS }}
       GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
       GOOGLE_SERVER_CLIENT_ID: ${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
+      ANDROID_APP_ORG: ${{ vars.ANDROID_APP_ORG }}
 
     steps:
       - name: Checkout
@@ -79,6 +80,9 @@ jobs:
 
       - name: Prepare Android platform
         run: |
+          android_org="${ANDROID_APP_ORG:-com.financeapp}"
+          echo "Using Android org: $android_org"
+
           rm -rf /tmp/finsage_app_backup
           mkdir -p /tmp/finsage_app_backup
           cp -R lib /tmp/finsage_app_backup/lib
@@ -88,7 +92,7 @@ jobs:
           cp pubspec.yaml /tmp/finsage_app_backup/pubspec.yaml
           cp l10n.yaml /tmp/finsage_app_backup/l10n.yaml
 
-          flutter create . --platforms=android --project-name fin_sage --org com.financeapp --overwrite
+          flutter create . --platforms=android --project-name fin_sage --org "$android_org" --overwrite
 
           rm -rf lib assets test integration_test
           cp -R /tmp/finsage_app_backup/lib ./lib
@@ -113,6 +117,20 @@ jobs:
           EOT
 
           echo "REPLACE_WITH_REAL_KEYSTORE" > android/app.keystore.placeholder
+
+          android_app_id=""
+          if [ -f android/app/build.gradle.kts ]; then
+            android_app_id="$(sed -n 's/^[[:space:]]*applicationId = "\(.*\)"/\1/p' android/app/build.gradle.kts | head -n1)"
+          fi
+          if [ -z "$android_app_id" ] && [ -f android/app/build.gradle ]; then
+            android_app_id="$(sed -n "s/^[[:space:]]*applicationId[[:space:]]*['\"]\\(.*\\)['\"]/\\1/p" android/app/build.gradle | head -n1)"
+          fi
+          if [ -z "$android_app_id" ]; then
+            echo "Failed to detect generated Android applicationId."
+            exit 1
+          fi
+          echo "ANDROID_APP_ID=$android_app_id" >> "$GITHUB_ENV"
+          echo "Detected Android applicationId: $android_app_id"
 
       - name: Resolve release metadata
         id: meta
@@ -191,6 +209,11 @@ jobs:
             fi
           fi
 
+          if [ -z "${ANDROID_APP_ID:-}" ]; then
+            echo "ANDROID_APP_ID is empty."
+            exit 1
+          fi
+
       - name: Validate keystore secrets
         run: |
           if [ -z "$KEYSTORE_B64" ] || [ -z "$KEYSTORE_PASS" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASS" ]; then
@@ -201,6 +224,11 @@ jobs:
             echo "Missing Google auth secrets. Set GOOGLE_CLIENT_ID and GOOGLE_SERVER_CLIENT_ID."
             exit 1
           fi
+
+      - name: Android package summary
+        run: |
+          echo "Android package for this release build: \`$ANDROID_APP_ID\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "Ensure Firebase/Google Cloud OAuth credentials use this exact package name." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Prepare keystore
         run: |
