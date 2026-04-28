@@ -255,6 +255,36 @@ jobs:
             echo "Patched: $plugin_gradle"
           done
 
+      - name: Patch Kotlin language version in plugins
+        run: |
+          mapfile -t kotlin_gradle_files < <(
+            grep -RIl \
+              --include="build.gradle" \
+              --include="build.gradle.kts" \
+              -e 'languageVersion = "1.6"' \
+              -e "languageVersion = '1.6'" \
+              -e 'apiVersion = "1.6"' \
+              -e "apiVersion = '1.6'" \
+              -e '-language-version 1.6' \
+              -e '-api-version 1.6' \
+              "$HOME/.pub-cache/hosted/pub.dev"
+          )
+
+          if [ "${#kotlin_gradle_files[@]}" -eq 0 ]; then
+            echo "No plugin Kotlin 1.6 language settings found."
+            exit 0
+          fi
+
+          for kotlin_file in "${kotlin_gradle_files[@]}"; do
+            sed -i 's/languageVersion = "1.6"/languageVersion = "1.8"/g' "$kotlin_file"
+            sed -i "s/languageVersion = '1.6'/languageVersion = '1.8'/g" "$kotlin_file"
+            sed -i 's/apiVersion = "1.6"/apiVersion = "1.8"/g' "$kotlin_file"
+            sed -i "s/apiVersion = '1.6'/apiVersion = '1.8'/g" "$kotlin_file"
+            sed -i 's/-language-version 1.6/-language-version 1.8/g' "$kotlin_file"
+            sed -i 's/-api-version 1.6/-api-version 1.8/g' "$kotlin_file"
+            echo "Patched Kotlin language level: $kotlin_file"
+          done
+
       - name: Build release APK
         run: |
           flutter build apk --release \
