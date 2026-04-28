@@ -58,4 +58,4 @@ cd android
    - Package name yang sama dengan aplikasi.
    - SHA-1 yang sama persis dengan hasil `signingReport`.
 4. Pastikan `google-services.json` (jika digunakan) berasal dari project Firebase yang sama.
-5. Untuk pipeline release repo ini, package name saat generate Android adalah `com.financeapp`, jadi OAuth/Firebase harus cocok dengan package itu.
+5. Untuk pipeline release repo ini, package name saat generate Android default-nya `com.financeapp.fin_sage` (atau `<ANDROID_APP_ORG>.fin_sage` jika variable diisi), jadi OAuth/Firebase harus cocok dengan package itu.

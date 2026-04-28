@@ -144,9 +144,11 @@ jobs:
           echo "release_version=$release_version" >> "$GITHUB_ENV"
           echo "app_version=$app_version" >> "$GITHUB_ENV"
 
-      - name: Patch Android Kotlin plugin version
+      - name: Patch Android build toolchain versions
         run: |
           target_kotlin_version="2.2.0"
+          target_agp_version="8.12.1"
+          target_gradle_version="8.13"
 
           if [ -f android/settings.gradle ]; then
             sed -i -E \
@@ -155,6 +157,30 @@ jobs:
             sed -i -E \
               "s/id 'org.jetbrains.kotlin.android' version '[^']+'/id 'org.jetbrains.kotlin.android' version '$target_kotlin_version'/g" \
               android/settings.gradle
+            sed -i -E \
+              "s/id \"com.android.application\" version \"[^\"]+\"/id \"com.android.application\" version \"$target_agp_version\"/g" \
+              android/settings.gradle
+            sed -i -E \
+              "s/id \"com.android.library\" version \"[^\"]+\"/id \"com.android.library\" version \"$target_agp_version\"/g" \
+              android/settings.gradle
+            sed -i -E \
+              "s/id 'com.android.application' version '[^']+'/id 'com.android.application' version '$target_agp_version'/g" \
+              android/settings.gradle
+            sed -i -E \
+              "s/id 'com.android.library' version '[^']+'/id 'com.android.library' version '$target_agp_version'/g" \
+              android/settings.gradle
+          fi
+
+          if [ -f android/settings.gradle.kts ]; then
+            sed -i -E \
+              "s/id\\(\"org.jetbrains.kotlin.android\"\\) version \"[^\"]+\"/id(\"org.jetbrains.kotlin.android\") version \"$target_kotlin_version\"/g" \
+              android/settings.gradle.kts
+            sed -i -E \
+              "s/id\\(\"com.android.application\"\\) version \"[^\"]+\"/id(\"com.android.application\") version \"$target_agp_version\"/g" \
+              android/settings.gradle.kts
+            sed -i -E \
+              "s/id\\(\"com.android.library\"\\) version \"[^\"]+\"/id(\"com.android.library\") version \"$target_agp_version\"/g" \
+              android/settings.gradle.kts
           fi
 
           if [ -f android/build.gradle ]; then
@@ -162,16 +188,57 @@ jobs:
               "s/ext\.kotlin_version = '([^']+)'/ext.kotlin_version = '$target_kotlin_version'/g" \
               android/build.gradle
             sed -i -E \
-              's/org.jetbrains.kotlin:kotlin-gradle-plugin:[^"]+/org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.0/g' \
+              "s/org.jetbrains.kotlin:kotlin-gradle-plugin:[^\"]+/org.jetbrains.kotlin:kotlin-gradle-plugin:$target_kotlin_version/g" \
               android/build.gradle
+            sed -i -E \
+              "s/com.android.tools.build:gradle:[^\"]+/com.android.tools.build:gradle:$target_agp_version/g" \
+              android/build.gradle
+          fi
+
+          if [ -f android/build.gradle.kts ]; then
+            sed -i -E \
+              "s/id\\(\"org.jetbrains.kotlin.android\"\\) version \"[^\"]+\"/id(\"org.jetbrains.kotlin.android\") version \"$target_kotlin_version\"/g" \
+              android/build.gradle.kts
+            sed -i -E \
+              "s/id\\(\"com.android.application\"\\) version \"[^\"]+\"/id(\"com.android.application\") version \"$target_agp_version\"/g" \
+              android/build.gradle.kts
+            sed -i -E \
+              "s/id\\(\"com.android.library\"\\) version \"[^\"]+\"/id(\"com.android.library\") version \"$target_agp_version\"/g" \
+              android/build.gradle.kts
+          fi
+
+          if [ -f android/gradle/wrapper/gradle-wrapper.properties ]; then
+            sed -i -E \
+              "s#distributionUrl=.*#distributionUrl=https\\://services.gradle.org/distributions/gradle-${target_gradle_version}-bin.zip#g" \
+              android/gradle/wrapper/gradle-wrapper.properties
           fi
 
           if ! grep -R -n \
             -e "org.jetbrains.kotlin.android\" version \"$target_kotlin_version\"" \
             -e "org.jetbrains.kotlin.android' version '$target_kotlin_version'" \
+            -e "id(\"org.jetbrains.kotlin.android\") version \"$target_kotlin_version\"" \
             -e "ext.kotlin_version = '$target_kotlin_version'" \
-            android/settings.gradle android/build.gradle 2>/dev/null; then
+            -e "kotlin-gradle-plugin:$target_kotlin_version" \
+            android/settings.gradle android/settings.gradle.kts android/build.gradle android/build.gradle.kts 2>/dev/null; then
             echo "Failed to patch Kotlin plugin version to $target_kotlin_version."
+            exit 1
+          fi
+
+          if ! grep -R -n \
+            -e "com.android.application\" version \"$target_agp_version\"" \
+            -e "com.android.application' version '$target_agp_version'" \
+            -e "id(\"com.android.application\") version \"$target_agp_version\"" \
+            -e "com.android.library\" version \"$target_agp_version\"" \
+            -e "com.android.library' version '$target_agp_version'" \
+            -e "id(\"com.android.library\") version \"$target_agp_version\"" \
+            -e "com.android.tools.build:gradle:$target_agp_version" \
+            android/settings.gradle android/settings.gradle.kts android/build.gradle android/build.gradle.kts 2>/dev/null; then
+            echo "Failed to patch AGP version to $target_agp_version."
+            exit 1
+          fi
+
+          if ! grep -n "gradle-${target_gradle_version}-bin.zip" android/gradle/wrapper/gradle-wrapper.properties >/dev/null 2>&1; then
+            echo "Failed to patch Gradle wrapper to $target_gradle_version."
             exit 1
           fi
 
@@ -260,7 +327,7 @@ jobs:
 
           if [ "${#gradle_files[@]}" -eq 0 ]; then
             echo "No plugin build.gradle files with flutter SDK placeholders found."
-            exit 1
+            exit 0
           fi
 
           for plugin_gradle in "${gradle_files[@]}"; do

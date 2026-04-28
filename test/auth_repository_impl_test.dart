@@ -20,7 +20,7 @@ void main() {
   test('returns false when user cancels Google Sign-In', () async {
     when(
       () => googleSignIn.signIn(),
-    ).thenThrow(const PlatformException(code: 'sign_in_canceled', message: 'User canceled'));
+    ).thenThrow(PlatformException(code: 'sign_in_canceled', message: 'User canceled'));
 
     final result = await repository.signInWithGoogle();
 
@@ -29,7 +29,7 @@ void main() {
 
   test('maps sign_in_failed code 10 into developer error app exception', () async {
     when(() => googleSignIn.signIn()).thenThrow(
-      const PlatformException(
+      PlatformException(
         code: 'sign_in_failed',
         message: 'I2.b: 10:',
       ),

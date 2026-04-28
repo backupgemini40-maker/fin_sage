@@ -3,6 +3,8 @@
 .packages
 .pub/
 build/
+.flutter-plugins
+.flutter-plugins-dependencies
 
 # IDE
 .idea/
@@ -15,6 +17,10 @@ android/local.properties
 ios/Pods/
 ios/.symlinks/
 ios/Flutter/.last_build_id
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+ios/Runner/GeneratedPluginRegistrant.*
+android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
 
 # Keystore
 android/app/*.keystore
