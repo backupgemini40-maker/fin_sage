@@ -9,10 +9,25 @@
 4. Buat OAuth Client ID:
    - Android client (package name + SHA-1 debug/release)
    - Web client (dipakai sebagai `GOOGLE_SERVER_CLIENT_ID`)
+   - Package name Android release workflow saat ini: `com.financeapp`
 5. Isi GitHub Secrets untuk release Android:
    - `GOOGLE_CLIENT_ID`
    - `GOOGLE_SERVER_CLIENT_ID`
-6. Untuk build lokal/manual, kirim `dart-define`:
+6. Ambil nilai client ID cepat dari Firebase CLI:
+
+```bash
+firebase apps:sdkconfig ANDROID --project finance-app-260329-1505
+```
+
+Gunakan:
+- `client_type: 1` (Android) sebagai `GOOGLE_CLIENT_ID`
+- `client_type: 3` (Web) sebagai `GOOGLE_SERVER_CLIENT_ID`
+
+Contoh pada project `finance-app-260329-1505`:
+- `GOOGLE_CLIENT_ID`: `609148169375-keaga5dbjj53si9n98258ld6s3m4i500.apps.googleusercontent.com`
+- `GOOGLE_SERVER_CLIENT_ID`: `609148169375-v8m0oiutp3te7rio3848fp7tadriv5ri.apps.googleusercontent.com`
+
+7. Untuk build lokal/manual, kirim `dart-define`:
 
 ```bash
 flutter build apk --release \
@@ -20,4 +35,4 @@ flutter build apk --release \
   --dart-define=GOOGLE_SERVER_CLIENT_ID=<your_google_server_client_id>
 ```
 
-7. Pastikan akun tester sudah diizinkan pada OAuth consent screen jika status app masih testing.
+8. Pastikan akun tester sudah diizinkan pada OAuth consent screen jika status app masih testing.

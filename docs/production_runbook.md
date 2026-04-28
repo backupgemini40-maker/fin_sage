@@ -27,8 +27,8 @@ Dokumen ini dipakai saat persiapan rilis, rilis, dan rollback produksi.
    ```
 3. Tunggu workflow `release.yml` selesai.
 4. Verifikasi artifact pada GitHub Release:
-   - `finsage-vX.Y.Z-release.apk`
-   - `finsage-vX.Y.Z-release.apk.sha256`
+   - `app-release.apk`
+   - `app-release.apk.sha256`
 5. Verifikasi nilai checksum di release notes cocok dengan file `.sha256`.
 6. Smoke test APK di minimal 1 device fisik + 1 emulator.
 
@@ -64,4 +64,3 @@ Dokumen ini dipakai saat persiapan rilis, rilis, dan rollback produksi.
    - data lokal rusak saat restore
    - backup cloud tidak bisa dipakai sama sekali
 2. Untuk `Critical`, rollback dulu, baru lanjut hotfix.
-
