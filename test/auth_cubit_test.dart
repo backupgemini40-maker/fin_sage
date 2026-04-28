@@ -62,4 +62,18 @@ void main() {
           .having((s) => s.errorMessage, 'errorMessage', contains('session error')),
     ],
   );
+
+  blocTest<AuthCubit, AuthState>(
+    'signOut emits unauthenticated with mapped error when repository throws',
+    build: () {
+      when(() => repository.signOut()).thenThrow(Exception('signout failed'));
+      return AuthCubit(repository);
+    },
+    act: (cubit) => cubit.signOut(),
+    expect: () => [
+      isA<AuthState>()
+          .having((s) => s.status, 'status', AuthStatus.unauthenticated)
+          .having((s) => s.errorMessage, 'errorMessage', contains('signout failed')),
+    ],
+  );
 }
