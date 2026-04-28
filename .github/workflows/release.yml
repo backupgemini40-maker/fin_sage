@@ -460,6 +460,21 @@ EOT
             fi
           fi
 
+      - name: Debug app Gradle config
+        run: |
+          echo "----- android/app/build.gradle -----"
+          if [ -f android/app/build.gradle ]; then
+            sed -n '1,260p' android/app/build.gradle
+          else
+            echo "android/app/build.gradle not found"
+          fi
+          echo "----- android/app/build.gradle.kts -----"
+          if [ -f android/app/build.gradle.kts ]; then
+            sed -n '1,260p' android/app/build.gradle.kts
+          else
+            echo "android/app/build.gradle.kts not found"
+          fi
+
       - name: Build release APK
         run: |
           flutter build apk --release \
