@@ -328,6 +328,18 @@ jobs:
           fi
           echo "Release keystore SHA-1: \`$sha1\`" >> "$GITHUB_STEP_SUMMARY"
           echo "Release keystore SHA-256: \`$sha256\`" >> "$GITHUB_STEP_SUMMARY"
+          mkdir -p build/ci
+          {
+            echo "ANDROID_APPLICATION_ID=$ANDROID_APP_ID"
+            echo "RELEASE_KEYSTORE_SHA1=$sha1"
+            echo "RELEASE_KEYSTORE_SHA256=$sha256"
+          } > build/ci/google_signin_release_metadata.txt
+
+      - name: Upload Google Sign-In metadata artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: google-signin-release-metadata
+          path: build/ci/google_signin_release_metadata.txt
 
       - name: Patch Android plugin Gradle SDK placeholders
         run: |

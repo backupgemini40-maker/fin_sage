@@ -20,6 +20,7 @@ Dokumen ini dipakai saat persiapan rilis, rilis, dan rollback produksi.
    - Repository Variable `ANDROID_APP_ORG` (opsional, default `com.financeapp`)
    - Application ID hasil build akan tampil di workflow summary (`release.yml`).
 8. Pastikan SHA-1/SHA-256 keystore release yang tampil di workflow summary sudah didaftarkan ke Firebase + Google Cloud OAuth Android client.
+9. Download artifact `google-signin-release-metadata` dari run release untuk salin cepat `applicationId`, SHA-1, SHA-256.
 
 ## 2. Release Steps
 

@@ -57,6 +57,7 @@ Lihat folder `lib/` untuk pembagian:
 
 1. Konfigurasi Android keystore sesuai [keystore_instructions.md](keystore_instructions.md)
 2. Siapkan Google Sign-In di Android/iOS (lihat [docs/android_google_signin_setup.md](docs/android_google_signin_setup.md))
+   - Checklist go-live Android: [docs/google_signin_go_live_checklist.md](docs/google_signin_go_live_checklist.md)
 3. Set `dart-define` Google OAuth saat build Android:
    - `GOOGLE_CLIENT_ID`
    - `GOOGLE_SERVER_CLIENT_ID`
@@ -84,3 +85,4 @@ Lihat folder `lib/` untuk pembagian:
 - Lokalisasi source: `lib/l10n/app_en.arb`, `lib/l10n/app_id.arb`.
 - Release workflow Android akan gagal jika secret `GOOGLE_CLIENT_ID` dan `GOOGLE_SERVER_CLIENT_ID` belum diisi.
 - Release workflow akan menampilkan `applicationId` + SHA-1/SHA-256 signing certificate di Step Summary untuk sinkronisasi Firebase/Google Cloud.
+- Release workflow juga upload artifact `google-signin-release-metadata` agar nilai OAuth/SHA mudah dicopy.
