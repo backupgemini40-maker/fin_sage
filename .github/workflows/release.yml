@@ -189,7 +189,7 @@ jobs:
 
       - name: Patch package_info_plus Gradle for CI compatibility
         run: |
-          plugin_gradle="$(find "$HOME/.pub-cache/hosted/pub.dev" -type f -path "*/package_info_plus-*/android/build.gradle" | sort | tail -n1)"
+          plugin_gradle="$(find "$HOME/.pub-cache/hosted/pub.dev" -type f -path "*/package_info_plus-*/android/build.gradle" -not -path "*/example/*" | sort | head -n1)"
           if [ -z "$plugin_gradle" ]; then
             echo "package_info_plus gradle file not found in pub cache."
             exit 1
@@ -202,7 +202,7 @@ jobs:
             exit 1
           fi
           echo "Patched: $plugin_gradle"
-          grep -n "compileSdkVersion\\|minSdkVersion\\|targetSdkVersion" "$plugin_gradle"
+          grep -n "compileSdkVersion\\|minSdkVersion\\|targetSdkVersion" "$plugin_gradle" || true
 
       - name: Build release APK
         run: |
