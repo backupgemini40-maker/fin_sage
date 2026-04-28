@@ -28,6 +28,14 @@ class AppLocalizations {
       'googleAuthUnavailable': 'Google authentication is unavailable. Please sign in again and retry.',
       'googleSignInDeveloperError':
           'Google Sign-In configuration is invalid (OAuth/SHA-1 mismatch). Verify Firebase and Google Cloud credentials.',
+      'googleSignInTroubleshootTitle': 'Google Sign-In setup details',
+      'googleSignInTroubleshootHint':
+          'Use the Android package and keystore SHA-1/SHA-256 values below to match Firebase and Google Cloud OAuth credentials.',
+      'androidApplicationIdLabel': 'Android applicationId',
+      'serverClientIdConfiguredLabel': 'GOOGLE_SERVER_CLIENT_ID configured',
+      'clientIdConfiguredLabel': 'GOOGLE_CLIENT_ID configured',
+      'configuredYes': 'Yes',
+      'configuredNo': 'No',
       'dashboardTitle': 'Dashboard',
       'totalBalance': 'Total Balance',
       'monthlyIncome': 'Monthly Income',
@@ -151,6 +159,14 @@ class AppLocalizations {
       'googleAuthUnavailable': 'Autentikasi Google tidak tersedia. Silakan login ulang lalu coba lagi.',
       'googleSignInDeveloperError':
           'Konfigurasi Google Sign-In tidak valid (OAuth/SHA-1 tidak cocok). Periksa kredensial Firebase dan Google Cloud.',
+      'googleSignInTroubleshootTitle': 'Detail setup Google Sign-In',
+      'googleSignInTroubleshootHint':
+          'Gunakan Android package dan SHA-1/SHA-256 keystore di bawah ini untuk dicocokkan ke kredensial OAuth Firebase dan Google Cloud.',
+      'androidApplicationIdLabel': 'Android applicationId',
+      'serverClientIdConfiguredLabel': 'GOOGLE_SERVER_CLIENT_ID terkonfigurasi',
+      'clientIdConfiguredLabel': 'GOOGLE_CLIENT_ID terkonfigurasi',
+      'configuredYes': 'Ya',
+      'configuredNo': 'Tidak',
       'dashboardTitle': 'Dasbor',
       'totalBalance': 'Total Saldo',
       'monthlyIncome': 'Pemasukan Bulanan',
@@ -275,6 +291,13 @@ class AppLocalizations {
   String get googleSignInConfigMissing => _t('googleSignInConfigMissing');
   String get googleAuthUnavailable => _t('googleAuthUnavailable');
   String get googleSignInDeveloperError => _t('googleSignInDeveloperError');
+  String get googleSignInTroubleshootTitle => _t('googleSignInTroubleshootTitle');
+  String get googleSignInTroubleshootHint => _t('googleSignInTroubleshootHint');
+  String get androidApplicationIdLabel => _t('androidApplicationIdLabel');
+  String get serverClientIdConfiguredLabel => _t('serverClientIdConfiguredLabel');
+  String get clientIdConfiguredLabel => _t('clientIdConfiguredLabel');
+  String get configuredYes => _t('configuredYes');
+  String get configuredNo => _t('configuredNo');
   String get dashboardTitle => _t('dashboardTitle');
   String get totalBalance => _t('totalBalance');
   String get monthlyIncome => _t('monthlyIncome');

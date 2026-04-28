@@ -313,6 +313,22 @@ jobs:
           storeFile=fin_sage.keystore
           EOT
 
+      - name: Print signing certificate fingerprints
+        run: |
+          keytool -list -v \
+            -keystore android/app/fin_sage.keystore \
+            -alias "$KEY_ALIAS" \
+            -storepass "$KEYSTORE_PASS" \
+            -keypass "$KEY_PASS" > /tmp/release_keystore_info.txt
+          sha1="$(sed -n 's/.*SHA1: //p' /tmp/release_keystore_info.txt | head -n1)"
+          sha256="$(sed -n 's/.*SHA256: //p' /tmp/release_keystore_info.txt | head -n1)"
+          if [ -z "$sha1" ] || [ -z "$sha256" ]; then
+            echo "Unable to extract SHA fingerprint from keystore."
+            exit 1
+          fi
+          echo "Release keystore SHA-1: \`$sha1\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "Release keystore SHA-256: \`$sha256\`" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Patch Android plugin Gradle SDK placeholders
         run: |
           mapfile -t gradle_files < <(
@@ -479,6 +495,7 @@ jobs:
         run: |
           flutter build apk --release \
             --dart-define=APP_VERSION="$app_version" \
+            --dart-define=ANDROID_APPLICATION_ID="$ANDROID_APP_ID" \
             --dart-define=GOOGLE_CLIENT_ID="$GOOGLE_CLIENT_ID" \
             --dart-define=GOOGLE_SERVER_CLIENT_ID="$GOOGLE_SERVER_CLIENT_ID"
 

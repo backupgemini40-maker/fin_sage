@@ -19,6 +19,7 @@ Dokumen ini dipakai saat persiapan rilis, rilis, dan rollback produksi.
 7. Pastikan package name Android untuk release CI sesuai Firebase/Google Cloud:
    - Repository Variable `ANDROID_APP_ORG` (opsional, default `com.financeapp`)
    - Application ID hasil build akan tampil di workflow summary (`release.yml`).
+8. Pastikan SHA-1/SHA-256 keystore release yang tampil di workflow summary sudah didaftarkan ke Firebase + Google Cloud OAuth Android client.
 
 ## 2. Release Steps
 

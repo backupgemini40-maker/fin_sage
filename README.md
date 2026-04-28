@@ -60,6 +60,7 @@ Lihat folder `lib/` untuk pembagian:
 3. Set `dart-define` Google OAuth saat build Android:
    - `GOOGLE_CLIENT_ID`
    - `GOOGLE_SERVER_CLIENT_ID`
+   - `ANDROID_APPLICATION_ID` (opsional lokal, otomatis diisi release workflow)
 4. (Opsional) Konfigurasi observability:
    - `SENTRY_DSN`
    - `SENTRY_TRACE_SAMPLE_RATE` (0.0 - 1.0, default `0.1`)
@@ -82,3 +83,4 @@ Lihat folder `lib/` untuk pembagian:
 - File placeholder keystore: `android/app.keystore.placeholder`.
 - Lokalisasi source: `lib/l10n/app_en.arb`, `lib/l10n/app_id.arb`.
 - Release workflow Android akan gagal jika secret `GOOGLE_CLIENT_ID` dan `GOOGLE_SERVER_CLIENT_ID` belum diisi.
+- Release workflow akan menampilkan `applicationId` + SHA-1/SHA-256 signing certificate di Step Summary untuk sinkronisasi Firebase/Google Cloud.

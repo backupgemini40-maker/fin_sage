@@ -16,7 +16,10 @@
 5. Isi GitHub Secrets untuk release Android:
    - `GOOGLE_CLIENT_ID`
    - `GOOGLE_SERVER_CLIENT_ID`
-6. Ambil nilai client ID cepat dari Firebase CLI:
+6. Pastikan Repository Variable `ANDROID_APP_ORG` konsisten dengan Firebase/Google Cloud.
+   - Application ID release menjadi `<ANDROID_APP_ORG>.fin_sage`
+   - Default jika variable kosong: `com.financeapp.fin_sage`
+7. Ambil nilai client ID cepat dari Firebase CLI:
 
 ```bash
 firebase apps:sdkconfig ANDROID --project finance-app-260329-1505
@@ -30,7 +33,7 @@ Contoh pada project `finance-app-260329-1505`:
 - `GOOGLE_CLIENT_ID`: `609148169375-keaga5dbjj53si9n98258ld6s3m4i500.apps.googleusercontent.com`
 - `GOOGLE_SERVER_CLIENT_ID`: `609148169375-v8m0oiutp3te7rio3848fp7tadriv5ri.apps.googleusercontent.com`
 
-7. Untuk build lokal/manual, kirim `dart-define`:
+8. Untuk build lokal/manual, kirim `dart-define`:
 
 ```bash
 flutter build apk --release \
@@ -38,7 +41,11 @@ flutter build apk --release \
   --dart-define=GOOGLE_SERVER_CLIENT_ID=<your_google_server_client_id>
 ```
 
-8. Pastikan akun tester sudah diizinkan pada OAuth consent screen jika status app masih testing.
+9. Pastikan akun tester sudah diizinkan pada OAuth consent screen jika status app masih testing.
+10. Untuk release CI, lihat `GitHub Actions > FinSage Release > Step Summary`:
+   - Android package (`applicationId`)
+   - SHA-1 dan SHA-256 dari keystore signing release
+   Nilai ini yang harus didaftarkan ke Firebase Android app dan OAuth Android client.
 
 ## Troubleshooting `PlatformException(sign_in_failed, ... 10 ...)`
 

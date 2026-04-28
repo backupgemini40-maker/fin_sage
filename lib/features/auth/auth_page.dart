@@ -1,5 +1,6 @@
 import 'package:fin_sage/core/constants/lottie_placeholders.dart';
 import 'package:fin_sage/core/constants/google_auth_config.dart';
+import 'package:fin_sage/core/errors/app_error_codes.dart';
 import 'package:fin_sage/core/errors/error_boundary.dart';
 import 'package:fin_sage/core/errors/error_localizer.dart';
 import 'package:fin_sage/core/widgets/haptic_button.dart';
@@ -60,11 +61,65 @@ class AuthPage extends StatelessWidget {
                         style: TextStyle(color: Theme.of(context).colorScheme.error),
                       ),
                     ],
+                    if (state.errorMessage == AppErrorCodes.googleSignInDeveloperError) ...[
+                      const SizedBox(height: 16),
+                      _GoogleSignInDiagnostics(
+                        packageName: GoogleAuthConfig.androidApplicationIdOrNull ?? '-',
+                        hasServerClientId: GoogleAuthConfig.hasServerClientId,
+                        hasClientId: GoogleAuthConfig.hasClientId,
+                      ),
+                    ],
                   ],
                 ),
               );
             },
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GoogleSignInDiagnostics extends StatelessWidget {
+  const _GoogleSignInDiagnostics({
+    required this.packageName,
+    required this.hasServerClientId,
+    required this.hasClientId,
+  });
+
+  final String packageName;
+  final bool hasServerClientId;
+  final bool hasClientId;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    final yesNo = (bool value) => value ? l10n.configuredYes : l10n.configuredNo;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l10n.googleSignInTroubleshootTitle, style: textTheme.titleSmall),
+            const SizedBox(height: 8),
+            Text(
+              l10n.googleSignInTroubleshootHint,
+              style: textTheme.bodySmall,
+            ),
+            const SizedBox(height: 8),
+            Text('${l10n.androidApplicationIdLabel}: $packageName', style: textTheme.bodySmall),
+            Text(
+              '${l10n.serverClientIdConfiguredLabel}: ${yesNo(hasServerClientId)}',
+              style: textTheme.bodySmall,
+            ),
+            Text(
+              '${l10n.clientIdConfiguredLabel}: ${yesNo(hasClientId)}',
+              style: textTheme.bodySmall,
+            ),
+          ],
         ),
       ),
     );
