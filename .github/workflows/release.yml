@@ -78,7 +78,27 @@ jobs:
         run: flutter pub get
 
       - name: Prepare Android platform
-        run: flutter create . --platforms=android --project-name fin_sage --org com.financeapp --overwrite
+        run: |
+          rm -rf /tmp/finsage_android_scaffold
+          flutter create /tmp/finsage_android_scaffold --platforms=android --project-name fin_sage --org com.financeapp
+          rm -rf android
+          cp -R /tmp/finsage_android_scaffold/android ./android
+
+          cat <<'EOT' > android/key.properties
+          storePassword=***
+          keyPassword=***
+          keyAlias=***
+          storeFile=fin_sage.keystore
+          EOT
+
+          cat <<'EOT' > android/app/key.properties
+          storePassword=***
+          keyPassword=***
+          keyAlias=***
+          storeFile=fin_sage.keystore
+          EOT
+
+          echo "REPLACE_WITH_REAL_KEYSTORE" > android/app.keystore.placeholder
 
       - name: Resolve release metadata
         id: meta
@@ -95,6 +115,8 @@ jobs:
       - name: Release preflight checks
         run: |
           test -f pubspec.yaml
+          test -f lib/main.dart
+          grep -q "class FinSageApp" lib/main.dart
           test -f android/app.keystore.placeholder
           grep -q "REPLACE_WITH_REAL_KEYSTORE" android/app.keystore.placeholder
           grep -q '^storePassword=\*\*\*$' android/key.properties
