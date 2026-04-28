@@ -19,25 +19,25 @@ class AppRoutes {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case root:
-        return _material(const AuthGatePage());
+        return _material(const AuthGatePage(), settings);
       case auth:
-        return _material(const AuthPage());
+        return _material(const AuthPage(), settings);
       case dashboard:
-        return _material(const DashboardPage());
+        return _material(const DashboardPage(), settings);
       case transactions:
-        return _material(const TransactionsPage());
+        return _material(const TransactionsPage(), settings);
       case budgets:
-        return _material(const BudgetsPage());
+        return _material(const BudgetsPage(), settings);
       case reports:
-        return _material(const ReportsPage());
+        return _material(const ReportsPage(), settings);
       case settingsRoute:
-        return _material(const SettingsPage());
+        return _material(const SettingsPage(), settings);
       default:
-        return _material(const AuthGatePage());
+        return _material(const AuthGatePage(), settings);
     }
   }
 
-  static MaterialPageRoute<dynamic> _material(Widget child) {
-    return MaterialPageRoute(builder: (_) => child);
+  static MaterialPageRoute<dynamic> _material(Widget child, RouteSettings settings) {
+    return MaterialPageRoute(builder: (_) => child, settings: settings);
   }
 }
