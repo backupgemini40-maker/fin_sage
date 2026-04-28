@@ -6,6 +6,7 @@ import 'package:fin_sage/core/constants/icons/transaction_icon.dart';
 import 'package:fin_sage/core/errors/error_boundary.dart';
 import 'package:fin_sage/core/utils/extensions.dart';
 import 'package:fin_sage/core/widgets/animated_balance_chart.dart';
+import 'package:fin_sage/core/widgets/app_bottom_nav.dart';
 import 'package:fin_sage/core/widgets/loading_skeleton.dart';
 import 'package:fin_sage/core/widgets/premium_card.dart';
 import 'package:fin_sage/data/models/transaction_model.dart';
@@ -30,6 +31,7 @@ class DashboardPage extends StatelessWidget {
         listener: (context, _) => context.read<DashboardCubit>().loadOverview(),
         child: Scaffold(
           appBar: AppBar(title: Text(l10n.dashboardTitle)),
+          bottomNavigationBar: const AppBottomNav(currentRoute: AppRoutes.dashboard),
           body: SafeArea(
             child: BlocBuilder<DashboardCubit, DashboardState>(
               builder: (context, state) {

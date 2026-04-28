@@ -2,6 +2,8 @@ import 'package:fin_sage/core/errors/error_boundary.dart';
 import 'package:fin_sage/core/errors/error_localizer.dart';
 import 'package:fin_sage/core/utils/extensions.dart';
 import 'package:fin_sage/core/utils/validators.dart';
+import 'package:fin_sage/core/constants/app_routes.dart';
+import 'package:fin_sage/core/widgets/app_bottom_nav.dart';
 import 'package:fin_sage/core/widgets/loading_skeleton.dart';
 import 'package:fin_sage/data/models/category_model.dart';
 import 'package:fin_sage/data/models/transaction_model.dart';
@@ -52,6 +54,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
           label: Text(l10n.addTransaction),
           icon: const Icon(Icons.add),
         ),
+        bottomNavigationBar: const AppBottomNav(currentRoute: AppRoutes.transactions),
         body: SafeArea(
           child: BlocConsumer<TransactionCubit, TransactionState>(
             listenWhen: (previous, current) => previous.error != current.error,

@@ -2,7 +2,9 @@ import 'package:fin_sage/core/errors/error_boundary.dart';
 import 'package:fin_sage/core/errors/error_localizer.dart';
 import 'package:fin_sage/core/errors/app_exception.dart';
 import 'package:fin_sage/core/errors/app_error_codes.dart';
+import 'package:fin_sage/core/constants/app_routes.dart';
 import 'package:fin_sage/core/utils/extensions.dart';
+import 'package:fin_sage/core/widgets/app_bottom_nav.dart';
 import 'package:fin_sage/core/widgets/loading_skeleton.dart';
 import 'package:fin_sage/features/reports/report_generator.dart';
 import 'package:fin_sage/data/models/transaction_model.dart';
@@ -51,6 +53,7 @@ class _ReportsPageState extends State<ReportsPage> {
     return ErrorBoundary(
       child: Scaffold(
         appBar: AppBar(title: Text(l10n.reportsTitle)),
+        bottomNavigationBar: const AppBottomNav(currentRoute: AppRoutes.reports),
         body: SafeArea(
           child: BlocBuilder<TransactionCubit, TransactionState>(
             builder: (context, txState) {

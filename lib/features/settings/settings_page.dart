@@ -6,6 +6,7 @@ import 'package:fin_sage/core/constants/lottie_placeholders.dart';
 import 'package:fin_sage/core/errors/error_boundary.dart';
 import 'package:fin_sage/core/errors/error_localizer.dart';
 import 'package:fin_sage/core/utils/extensions.dart';
+import 'package:fin_sage/core/widgets/app_bottom_nav.dart';
 import 'package:fin_sage/l10n/generated/app_localizations.dart';
 import 'package:fin_sage/logic/auth/auth_cubit.dart';
 import 'package:fin_sage/logic/budgets/budget_cubit.dart';
@@ -29,6 +30,7 @@ class SettingsPage extends StatelessWidget {
     return ErrorBoundary(
       child: Scaffold(
         appBar: AppBar(title: Text(l10n.settingsTitle)),
+        bottomNavigationBar: const AppBottomNav(currentRoute: AppRoutes.settingsRoute),
         body: SafeArea(
           child: BlocConsumer<SettingsCubit, SettingsState>(
             listenWhen: (previous, current) =>
