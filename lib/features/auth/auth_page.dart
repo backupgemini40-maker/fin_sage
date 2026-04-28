@@ -22,6 +22,7 @@ class AuthPage extends StatelessWidget {
         body: SafeArea(
           child: BlocBuilder<AuthCubit, AuthState>(
             builder: (context, state) {
+              final canSignIn = GoogleAuthConfig.hasServerClientId;
               return Padding(
                 padding: const EdgeInsets.all(24),
                 child: Column(
@@ -41,10 +42,10 @@ class AuthPage extends StatelessWidget {
                       HapticButton(
                         label: l10n.signInGoogle,
                         icon: Icons.login,
-                        onPressed: () => context.read<AuthCubit>().signIn(),
+                        onPressed: canSignIn ? () => context.read<AuthCubit>().signIn() : null,
                       ),
                     ],
-                    if (!GoogleAuthConfig.hasServerClientId) ...[
+                    if (!canSignIn) ...[
                       const SizedBox(height: 16),
                       Text(
                         l10n.googleSignInConfigMissing,
