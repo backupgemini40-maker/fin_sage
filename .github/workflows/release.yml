@@ -318,6 +318,7 @@ jobs:
           mapfile -t gradle_files < <(
             grep -RIl \
               --include="build.gradle" \
+              --include="build.gradle.kts" \
               --exclude-dir="example" \
               -e "flutter.compileSdkVersion" \
               -e "flutter.minSdkVersion" \
@@ -332,10 +333,13 @@ jobs:
 
           for plugin_gradle in "${gradle_files[@]}"; do
             sed -i 's/compileSdkVersion flutter.compileSdkVersion/compileSdkVersion 34/g' "$plugin_gradle"
+            sed -i 's/compileSdk flutter.compileSdkVersion/compileSdk 34/g' "$plugin_gradle"
             sed -i 's/compileSdk = flutter.compileSdkVersion/compileSdk = 34/g' "$plugin_gradle"
             sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' "$plugin_gradle"
+            sed -i 's/minSdk flutter.minSdkVersion/minSdk 21/g' "$plugin_gradle"
             sed -i 's/minSdk = flutter.minSdkVersion/minSdk = 21/g' "$plugin_gradle"
             sed -i 's/targetSdkVersion flutter.targetSdkVersion/targetSdkVersion 34/g' "$plugin_gradle"
+            sed -i 's/targetSdk flutter.targetSdkVersion/targetSdk 34/g' "$plugin_gradle"
             sed -i 's/targetSdk = flutter.targetSdkVersion/targetSdk = 34/g' "$plugin_gradle"
 
             if grep -q \
