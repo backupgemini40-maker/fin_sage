@@ -407,6 +407,22 @@ jobs:
             if ! grep -q "coreLibraryDesugaring[[:space:]]*['\"]$target_desugar['\"]" android/app/build.gradle; then
               sed -i '/dependencies[[:space:]]*{/a\    coreLibraryDesugaring "'"$target_desugar"'"' android/app/build.gradle
             fi
+
+            if ! grep -q "coreLibraryDesugaring[[:space:]]*['\"]$target_desugar['\"]" android/app/build.gradle; then
+              cat <<EOT >> android/app/build.gradle
+
+android {
+    ndkVersion "$target_ndk"
+    compileOptions {
+        coreLibraryDesugaringEnabled true
+    }
+}
+
+dependencies {
+    coreLibraryDesugaring "$target_desugar"
+}
+EOT
+            fi
           fi
 
           if [ -f android/app/build.gradle.kts ]; then
@@ -425,6 +441,22 @@ jobs:
 
             if ! grep -q "coreLibraryDesugaring(\"$target_desugar\")" android/app/build.gradle.kts; then
               sed -i '/dependencies[[:space:]]*{/a\    coreLibraryDesugaring("'"$target_desugar"'")' android/app/build.gradle.kts
+            fi
+
+            if ! grep -q "coreLibraryDesugaring(\"$target_desugar\")" android/app/build.gradle.kts; then
+              cat <<EOT >> android/app/build.gradle.kts
+
+android {
+    ndkVersion = "$target_ndk"
+    compileOptions {
+        isCoreLibraryDesugaringEnabled = true
+    }
+}
+
+dependencies {
+    coreLibraryDesugaring("$target_desugar")
+}
+EOT
             fi
           fi
 
