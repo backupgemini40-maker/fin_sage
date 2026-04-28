@@ -79,7 +79,24 @@ jobs:
 
       - name: Prepare Android platform
         run: |
-          flutter create . --platforms=android --project-name fin_sage --org com.financeapp
+          rm -rf /tmp/finsage_app_backup
+          mkdir -p /tmp/finsage_app_backup
+          cp -R lib /tmp/finsage_app_backup/lib
+          cp -R assets /tmp/finsage_app_backup/assets
+          cp -R test /tmp/finsage_app_backup/test
+          cp -R integration_test /tmp/finsage_app_backup/integration_test
+          cp pubspec.yaml /tmp/finsage_app_backup/pubspec.yaml
+          cp l10n.yaml /tmp/finsage_app_backup/l10n.yaml
+
+          flutter create . --platforms=android --project-name fin_sage --org com.financeapp --overwrite
+
+          rm -rf lib assets test integration_test
+          cp -R /tmp/finsage_app_backup/lib ./lib
+          cp -R /tmp/finsage_app_backup/assets ./assets
+          cp -R /tmp/finsage_app_backup/test ./test
+          cp -R /tmp/finsage_app_backup/integration_test ./integration_test
+          cp /tmp/finsage_app_backup/pubspec.yaml ./pubspec.yaml
+          cp /tmp/finsage_app_backup/l10n.yaml ./l10n.yaml
 
           cat <<'EOT' > android/key.properties
           storePassword=***
