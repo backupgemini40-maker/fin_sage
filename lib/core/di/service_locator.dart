@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:fin_sage/data/datasources/local/db_migration_service.dart';
 import 'package:fin_sage/data/datasources/local/drift_query_service.dart';
 import 'package:fin_sage/data/datasources/local/local_database_datasource.dart';
@@ -51,7 +53,7 @@ class ServiceLocator {
 
     sl.registerLazySingleton(
       () => GoogleSignIn(
-        clientId: GoogleAuthConfig.clientIdOrNull,
+        clientId: Platform.isAndroid ? null : GoogleAuthConfig.clientIdOrNull,
         serverClientId: GoogleAuthConfig.serverClientIdOrNull,
         scopes: const [
           'email',

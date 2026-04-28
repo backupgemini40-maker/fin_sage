@@ -8,5 +8,6 @@ abstract final class AppErrorCodes {
   static const String backupInvalidFile = 'backup_invalid_file';
   static const String backupChecksumMismatch = 'backup_checksum_mismatch';
   static const String googleAuthHeadersUnavailable = 'google_auth_headers_unavailable';
+  static const String googleSignInDeveloperError = 'google_sign_in_developer_error';
   static const String noDataToExport = 'no_data_to_export';
 }

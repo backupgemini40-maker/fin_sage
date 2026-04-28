@@ -26,6 +26,8 @@ class AppLocalizations {
       'googleSignInConfigMissing':
           'GOOGLE_SERVER_CLIENT_ID is not set. Define it in dart-define for Google Drive backup auth.',
       'googleAuthUnavailable': 'Google authentication is unavailable. Please sign in again and retry.',
+      'googleSignInDeveloperError':
+          'Google Sign-In configuration is invalid (OAuth/SHA-1 mismatch). Verify Firebase and Google Cloud credentials.',
       'dashboardTitle': 'Dashboard',
       'totalBalance': 'Total Balance',
       'monthlyIncome': 'Monthly Income',
@@ -147,6 +149,8 @@ class AppLocalizations {
       'googleSignInConfigMissing':
           'GOOGLE_SERVER_CLIENT_ID belum diisi. Tambahkan di dart-define untuk autentikasi backup Google Drive.',
       'googleAuthUnavailable': 'Autentikasi Google tidak tersedia. Silakan login ulang lalu coba lagi.',
+      'googleSignInDeveloperError':
+          'Konfigurasi Google Sign-In tidak valid (OAuth/SHA-1 tidak cocok). Periksa kredensial Firebase dan Google Cloud.',
       'dashboardTitle': 'Dasbor',
       'totalBalance': 'Total Saldo',
       'monthlyIncome': 'Pemasukan Bulanan',
@@ -270,6 +274,7 @@ class AppLocalizations {
   String get signInGoogle => _t('signInGoogle');
   String get googleSignInConfigMissing => _t('googleSignInConfigMissing');
   String get googleAuthUnavailable => _t('googleAuthUnavailable');
+  String get googleSignInDeveloperError => _t('googleSignInDeveloperError');
   String get dashboardTitle => _t('dashboardTitle');
   String get totalBalance => _t('totalBalance');
   String get monthlyIncome => _t('monthlyIncome');

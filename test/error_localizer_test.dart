@@ -16,6 +16,10 @@ void main() {
       localizeErrorMessage(l10nEn, AppErrorCodes.googleAuthHeadersUnavailable),
       l10nEn.googleAuthUnavailable,
     );
+    expect(
+      localizeErrorMessage(l10nEn, AppErrorCodes.googleSignInDeveloperError),
+      l10nEn.googleSignInDeveloperError,
+    );
     expect(localizeErrorMessage(l10nEn, AppErrorCodes.noDataToExport), l10nEn.noDataToExport);
   });
 

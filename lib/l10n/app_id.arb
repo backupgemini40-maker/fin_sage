@@ -5,6 +5,7 @@
   "signInGoogle": "Masuk dengan Google",
   "googleSignInConfigMissing": "GOOGLE_SERVER_CLIENT_ID belum diisi. Tambahkan di dart-define untuk autentikasi backup Google Drive.",
   "googleAuthUnavailable": "Autentikasi Google tidak tersedia. Silakan login ulang lalu coba lagi.",
+  "googleSignInDeveloperError": "Konfigurasi Google Sign-In tidak valid (OAuth/SHA-1 tidak cocok). Periksa kredensial Firebase dan Google Cloud.",
   "dashboardTitle": "Dasbor",
   "totalBalance": "Total Saldo",
   "monthlyIncome": "Pemasukan Bulanan",

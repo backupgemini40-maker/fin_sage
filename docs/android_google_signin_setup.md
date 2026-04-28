@@ -36,3 +36,23 @@ flutter build apk --release \
 ```
 
 8. Pastikan akun tester sudah diizinkan pada OAuth consent screen jika status app masih testing.
+
+## Troubleshooting `PlatformException(sign_in_failed, ... 10 ...)`
+
+Error code `10` (`DEVELOPER_ERROR`) hampir selalu berarti mismatch konfigurasi OAuth/SHA-1.
+
+Checklist perbaikan:
+
+1. Verifikasi SHA-1 debug/release:
+
+```bash
+cd android
+./gradlew signingReport
+```
+
+2. Tambahkan semua SHA-1 yang relevan ke Firebase Android App yang dipakai.
+3. Pastikan OAuth Client Android di Google Cloud memakai:
+   - Package name yang sama dengan aplikasi.
+   - SHA-1 yang sama persis dengan hasil `signingReport`.
+4. Pastikan `google-services.json` (jika digunakan) berasal dari project Firebase yang sama.
+5. Untuk pipeline release repo ini, package name saat generate Android adalah `com.financeapp`, jadi OAuth/Firebase harus cocok dengan package itu.

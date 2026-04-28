@@ -10,6 +10,7 @@ String localizeErrorMessage(AppLocalizations l10n, String rawMessage) {
     AppErrorCodes.backupInvalidFile => l10n.backupInvalidFile,
     AppErrorCodes.backupChecksumMismatch => l10n.backupChecksumMismatch,
     AppErrorCodes.googleAuthHeadersUnavailable => l10n.googleAuthUnavailable,
+    AppErrorCodes.googleSignInDeveloperError => l10n.googleSignInDeveloperError,
     AppErrorCodes.noDataToExport => l10n.noDataToExport,
     _ => rawMessage,
   };

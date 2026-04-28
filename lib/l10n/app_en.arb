@@ -5,6 +5,7 @@
   "signInGoogle": "Continue with Google",
   "googleSignInConfigMissing": "GOOGLE_SERVER_CLIENT_ID is not set. Define it in dart-define for Google Drive backup auth.",
   "googleAuthUnavailable": "Google authentication is unavailable. Please sign in again and retry.",
+  "googleSignInDeveloperError": "Google Sign-In configuration is invalid (OAuth/SHA-1 mismatch). Verify Firebase and Google Cloud credentials.",
   "dashboardTitle": "Dashboard",
   "totalBalance": "Total Balance",
   "monthlyIncome": "Monthly Income",
