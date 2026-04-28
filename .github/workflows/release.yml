@@ -187,25 +187,42 @@ jobs:
           storeFile=fin_sage.keystore
           EOT
 
-      - name: Patch package_info_plus Gradle for CI compatibility
+      - name: Patch Android plugin Gradle SDK placeholders
         run: |
-          plugin_gradle="$(find "$HOME/.pub-cache/hosted/pub.dev" -type f -path "*/package_info_plus-*/android/build.gradle" -not -path "*/example/*" | sort | head -n1)"
-          if [ -z "$plugin_gradle" ]; then
-            echo "package_info_plus gradle file not found in pub cache."
+          mapfile -t gradle_files < <(
+            grep -RIl \
+              --include="build.gradle" \
+              --exclude-dir="example" \
+              -e "flutter.compileSdkVersion" \
+              -e "flutter.minSdkVersion" \
+              -e "flutter.targetSdkVersion" \
+              "$HOME/.pub-cache/hosted/pub.dev"
+          )
+
+          if [ "${#gradle_files[@]}" -eq 0 ]; then
+            echo "No plugin build.gradle files with flutter SDK placeholders found."
             exit 1
           fi
-          sed -i 's/compileSdkVersion flutter.compileSdkVersion/compileSdkVersion 34/g' "$plugin_gradle"
-          sed -i 's/compileSdk = flutter.compileSdkVersion/compileSdk = 34/g' "$plugin_gradle"
-          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' "$plugin_gradle"
-          sed -i 's/minSdk = flutter.minSdkVersion/minSdk = 21/g' "$plugin_gradle"
-          sed -i 's/targetSdkVersion flutter.targetSdkVersion/targetSdkVersion 34/g' "$plugin_gradle"
-          sed -i 's/targetSdk = flutter.targetSdkVersion/targetSdk = 34/g' "$plugin_gradle"
-          if grep -q "compileSdkVersion flutter.compileSdkVersion\\|compileSdk = flutter.compileSdkVersion" "$plugin_gradle"; then
-            echo "Patch did not apply as expected."
-            exit 1
-          fi
-          echo "Patched: $plugin_gradle"
-          grep -n "compileSdkVersion\\|minSdkVersion\\|targetSdkVersion" "$plugin_gradle" || true
+
+          for plugin_gradle in "${gradle_files[@]}"; do
+            sed -i 's/compileSdkVersion flutter.compileSdkVersion/compileSdkVersion 34/g' "$plugin_gradle"
+            sed -i 's/compileSdk = flutter.compileSdkVersion/compileSdk = 34/g' "$plugin_gradle"
+            sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' "$plugin_gradle"
+            sed -i 's/minSdk = flutter.minSdkVersion/minSdk = 21/g' "$plugin_gradle"
+            sed -i 's/targetSdkVersion flutter.targetSdkVersion/targetSdkVersion 34/g' "$plugin_gradle"
+            sed -i 's/targetSdk = flutter.targetSdkVersion/targetSdk = 34/g' "$plugin_gradle"
+
+            if grep -q \
+              -e "flutter.compileSdkVersion" \
+              -e "flutter.minSdkVersion" \
+              -e "flutter.targetSdkVersion" \
+              "$plugin_gradle"; then
+              echo "Patch did not apply fully: $plugin_gradle"
+              exit 1
+            fi
+
+            echo "Patched: $plugin_gradle"
+          done
 
       - name: Build release APK
         run: |
