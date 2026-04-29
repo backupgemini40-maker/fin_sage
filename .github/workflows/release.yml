@@ -102,6 +102,9 @@ jobs:
           cp /tmp/finsage_app_backup/pubspec.yaml ./pubspec.yaml
           cp /tmp/finsage_app_backup/l10n.yaml ./l10n.yaml
 
+          sed -i 's|<manifest xmlns:android="http://schemas.android.com/apk/res/android">|<manifest xmlns:android="http://schemas.android.com/apk/res/android">\n    <uses-permission android:name="android.permission.INTERNET"/>|g' android/app/src/main/AndroidManifest.xml
+          sed -i 's/android:label="[^"]*"/android:label="@string\/app_name"/g' android/app/src/main/AndroidManifest.xml
+
           cat <<'EOT' > android/key.properties
           storePassword=***
           keyPassword=***
