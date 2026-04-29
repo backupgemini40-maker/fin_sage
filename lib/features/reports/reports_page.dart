@@ -92,8 +92,9 @@ class _ReportsPageState extends State<ReportsPage> {
                   padding: const EdgeInsets.all(16),
                   child: BlocBuilder<ReportCubit, ReportState>(
                     builder: (context, state) {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                      return ListView(
+                        keyboardDismissBehavior:
+                            ScrollViewKeyboardDismissBehavior.onDrag,
                         children: [
                           OutlinedButton.icon(
                             onPressed: state.loading
@@ -172,62 +173,71 @@ class _ReportsPageState extends State<ReportsPage> {
                             ),
                           ],
                           const SizedBox(height: 12),
-                          FilledButton.icon(
-                            onPressed: state.loading
-                                ? null
-                                : () {
-                                    context.read<ReportCubit>().run(() async {
-                                      if (filteredTxs.isEmpty) {
-                                        throw const AppException(
-                                          'No data to export',
-                                          code: AppErrorCodes.noDataToExport,
+                          Semantics(
+                            button: true,
+                            label: l10n.exportPdf,
+                            child: FilledButton.icon(
+                              onPressed: state.loading
+                                  ? null
+                                  : () {
+                                      context.read<ReportCubit>().run(() async {
+                                        if (filteredTxs.isEmpty) {
+                                          throw const AppException(
+                                            'No data to export',
+                                            code: AppErrorCodes.noDataToExport,
+                                          );
+                                        }
+                                        final title = l10n.monthlyReportTitle(
+                                          DateFormat.yMMMM(localeTag)
+                                              .format(_selectedMonth),
                                         );
-                                      }
-                                      final title = l10n.monthlyReportTitle(
-                                        DateFormat.yMMMM(localeTag)
-                                            .format(_selectedMonth),
-                                      );
-                                      final pdf = await _generator.generatePdf(
-                                        filteredTxs,
-                                        title: title,
-                                        labels: reportLabels,
-                                      );
-                                      await Printing.layoutPdf(
-                                          onLayout: (_) async => pdf);
-                                    });
-                                  },
-                            icon: const Icon(Icons.picture_as_pdf),
-                            label: Text(l10n.exportPdf),
+                                        final pdf =
+                                            await _generator.generatePdf(
+                                          filteredTxs,
+                                          title: title,
+                                          labels: reportLabels,
+                                        );
+                                        await Printing.layoutPdf(
+                                            onLayout: (_) async => pdf);
+                                      });
+                                    },
+                              icon: const Icon(Icons.picture_as_pdf),
+                              label: Text(l10n.exportPdf),
+                            ),
                           ),
                           const SizedBox(height: 12),
-                          OutlinedButton.icon(
-                            onPressed: state.loading
-                                ? null
-                                : () {
-                                    context.read<ReportCubit>().run(() async {
-                                      if (filteredTxs.isEmpty) {
-                                        throw const AppException(
-                                          'No data to export',
-                                          code: AppErrorCodes.noDataToExport,
+                          Semantics(
+                            button: true,
+                            label: l10n.exportCsv,
+                            child: OutlinedButton.icon(
+                              onPressed: state.loading
+                                  ? null
+                                  : () {
+                                      context.read<ReportCubit>().run(() async {
+                                        if (filteredTxs.isEmpty) {
+                                          throw const AppException(
+                                            'No data to export',
+                                            code: AppErrorCodes.noDataToExport,
+                                          );
+                                        }
+                                        final file =
+                                            await _generator.exportCsvFile(
+                                          filteredTxs,
+                                          labels: reportLabels,
                                         );
-                                      }
-                                      final file =
-                                          await _generator.exportCsvFile(
-                                        filteredTxs,
-                                        labels: reportLabels,
-                                      );
-                                      if (context.mounted) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                              content: Text(
-                                                  l10n.csvSaved(file.path))),
-                                        );
-                                      }
-                                    });
-                                  },
-                            icon: const Icon(Icons.table_chart),
-                            label: Text(l10n.exportCsv),
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                                content: Text(
+                                                    l10n.csvSaved(file.path))),
+                                          );
+                                        }
+                                      });
+                                    },
+                              icon: const Icon(Icons.table_chart),
+                              label: Text(l10n.exportCsv),
+                            ),
                           ),
                           if (state.loading) ...[
                             const SizedBox(height: 24),
