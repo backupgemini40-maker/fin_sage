@@ -317,31 +317,29 @@ jobs:
         run: |
           if [ -f android/app/build.gradle ]; then
             if ! grep -q "finsageReleaseSigningConfig" android/app/build.gradle; then
-              cat <<'EOT' >> android/app/build.gradle
-
-              def keystoreProperties = new Properties()
-              def keystorePropertiesFile = rootProject.file("key.properties")
-              if (keystorePropertiesFile.exists()) {
-                  keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
-              }
-
-              android {
-                  signingConfigs {
-                      release {
-                          keyAlias keystoreProperties["keyAlias"]
-                          keyPassword keystoreProperties["keyPassword"]
-                          storeFile keystoreProperties["storeFile"] ? file(keystoreProperties["storeFile"]) : null
-                          storePassword keystoreProperties["storePassword"]
-                      }
-                  }
-                  buildTypes {
-                      release {
-                          signingConfig signingConfigs.release
-                      }
-                  }
-              }
-              // finsageReleaseSigningConfig
-              EOT
+              {
+                printf '\n%s\n' 'def keystoreProperties = new Properties()'
+                printf '%s\n' 'def keystorePropertiesFile = rootProject.file("key.properties")'
+                printf '%s\n' 'if (keystorePropertiesFile.exists()) {'
+                printf '%s\n' '    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))'
+                printf '%s\n' '}'
+                printf '\n%s\n' 'android {'
+                printf '%s\n' '    signingConfigs {'
+                printf '%s\n' '        release {'
+                printf '%s\n' '            keyAlias keystoreProperties["keyAlias"]'
+                printf '%s\n' '            keyPassword keystoreProperties["keyPassword"]'
+                printf '%s\n' '            storeFile keystoreProperties["storeFile"] ? file(keystoreProperties["storeFile"]) : null'
+                printf '%s\n' '            storePassword keystoreProperties["storePassword"]'
+                printf '%s\n' '        }'
+                printf '%s\n' '    }'
+                printf '%s\n' '    buildTypes {'
+                printf '%s\n' '        release {'
+                printf '%s\n' '            signingConfig signingConfigs.release'
+                printf '%s\n' '        }'
+                printf '%s\n' '    }'
+                printf '%s\n' '}'
+                printf '%s\n' '// finsageReleaseSigningConfig'
+              } >> android/app/build.gradle
             fi
 
             sed -i 's/signingConfig signingConfigs.debug/signingConfig signingConfigs.release/g' android/app/build.gradle
@@ -350,34 +348,31 @@ jobs:
 
           if [ -f android/app/build.gradle.kts ]; then
             if ! grep -q "finsageReleaseSigningConfig" android/app/build.gradle.kts; then
-              cat <<'EOT' >> android/app/build.gradle.kts
-
-              import java.io.FileInputStream
-              import java.util.Properties
-
-              val keystoreProperties = Properties()
-              val keystorePropertiesFile = rootProject.file("key.properties")
-              if (keystorePropertiesFile.exists()) {
-                  keystoreProperties.load(FileInputStream(keystorePropertiesFile))
-              }
-
-              android {
-                  signingConfigs {
-                      create("release") {
-                          keyAlias = keystoreProperties["keyAlias"] as String?
-                          keyPassword = keystoreProperties["keyPassword"] as String?
-                          storeFile = (keystoreProperties["storeFile"] as String?)?.let { file(it) }
-                          storePassword = keystoreProperties["storePassword"] as String?
-                      }
-                  }
-                  buildTypes {
-                      getByName("release") {
-                          signingConfig = signingConfigs.getByName("release")
-                      }
-                  }
-              }
-              // finsageReleaseSigningConfig
-              EOT
+              {
+                printf '\n%s\n' 'import java.io.FileInputStream'
+                printf '%s\n' 'import java.util.Properties'
+                printf '\n%s\n' 'val keystoreProperties = Properties()'
+                printf '%s\n' 'val keystorePropertiesFile = rootProject.file("key.properties")'
+                printf '%s\n' 'if (keystorePropertiesFile.exists()) {'
+                printf '%s\n' '    keystoreProperties.load(FileInputStream(keystorePropertiesFile))'
+                printf '%s\n' '}'
+                printf '\n%s\n' 'android {'
+                printf '%s\n' '    signingConfigs {'
+                printf '%s\n' '        create("release") {'
+                printf '%s\n' '            keyAlias = keystoreProperties["keyAlias"] as String?'
+                printf '%s\n' '            keyPassword = keystoreProperties["keyPassword"] as String?'
+                printf '%s\n' '            storeFile = (keystoreProperties["storeFile"] as String?)?.let { file(it) }'
+                printf '%s\n' '            storePassword = keystoreProperties["storePassword"] as String?'
+                printf '%s\n' '        }'
+                printf '%s\n' '    }'
+                printf '%s\n' '    buildTypes {'
+                printf '%s\n' '        getByName("release") {'
+                printf '%s\n' '            signingConfig = signingConfigs.getByName("release")'
+                printf '%s\n' '        }'
+                printf '%s\n' '    }'
+                printf '%s\n' '}'
+                printf '%s\n' '// finsageReleaseSigningConfig'
+              } >> android/app/build.gradle.kts
             fi
 
             sed -i 's/signingConfig = signingConfigs.getByName("debug")/signingConfig = signingConfigs.getByName("release")/g' android/app/build.gradle.kts
