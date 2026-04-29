@@ -15,6 +15,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unexpectedError => 'Unexpected error';
 
   @override
+  String get databaseOpenFailed =>
+      'Unable to open local encrypted data. This can happen after reinstall. Restore from backup or reset local data.';
+
+  @override
   String get signInGoogle => 'Continue with Google';
 
   @override

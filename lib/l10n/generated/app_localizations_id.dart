@@ -15,6 +15,10 @@ class AppLocalizationsId extends AppLocalizations {
   String get unexpectedError => 'Terjadi kesalahan tak terduga';
 
   @override
+  String get databaseOpenFailed =>
+      'Gagal membuka data lokal terenkripsi. Ini bisa terjadi setelah install ulang. Pulihkan dari backup atau reset data lokal.';
+
+  @override
   String get signInGoogle => 'Masuk dengan Google';
 
   @override

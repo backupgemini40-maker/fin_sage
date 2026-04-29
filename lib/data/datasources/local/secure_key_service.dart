@@ -32,4 +32,8 @@ class SecureKeyService {
     }
     return createDbKey();
   }
+
+  Future<void> deleteDbKey() async {
+    await _storage.delete(key: AppConstants.dbEncryptionKey);
+  }
 }

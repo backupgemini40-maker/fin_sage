@@ -2,6 +2,7 @@
   "@@locale": "en",
   "appTitle": "FinSage",
   "unexpectedError": "Unexpected error",
+  "databaseOpenFailed": "Unable to open local encrypted data. This can happen after reinstall. Restore from backup or reset local data.",
   "signInGoogle": "Continue with Google",
   "googleSignInConfigMissing": "GOOGLE_SERVER_CLIENT_ID is not set. Define it in dart-define for Google Drive backup auth.",
   "googleAuthUnavailable": "Google authentication is unavailable. Please sign in again and retry.",

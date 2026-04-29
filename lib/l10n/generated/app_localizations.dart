@@ -110,6 +110,12 @@ abstract class AppLocalizations {
   /// **'Unexpected error'**
   String get unexpectedError;
 
+  /// No description provided for @databaseOpenFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to open local encrypted data. This can happen after reinstall. Restore from backup or reset local data.'**
+  String get databaseOpenFailed;
+
   /// No description provided for @signInGoogle.
   ///
   /// In en, this message translates to:

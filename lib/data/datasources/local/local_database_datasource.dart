@@ -32,8 +32,8 @@ class LocalDatabaseDataSource {
     var key = await _secureKeyService.readDbKey();
     if ((key == null || key.isEmpty) && dbExists) {
       throw const AppException(
-        'Encrypted database key is unavailable for this process. Open the app in foreground and retry.',
-        code: AppErrorCodes.unexpectedError,
+        'Failed to open encrypted local database: encryption key unavailable for existing database file.',
+        code: AppErrorCodes.databaseOpenFailed,
       );
     }
     key ??= await _secureKeyService.createDbKey();
@@ -50,7 +50,7 @@ class LocalDatabaseDataSource {
     } on DatabaseException catch (e) {
       throw AppException(
         'Failed to open encrypted local database: ${e.toString()}',
-        code: AppErrorCodes.unexpectedError,
+        code: AppErrorCodes.databaseOpenFailed,
       );
     }
 
@@ -219,5 +219,18 @@ class LocalDatabaseDataSource {
     final income = (row['income'] as num?)?.toDouble() ?? 0;
     final expense = (row['expense'] as num?)?.toDouble() ?? 0;
     return {'income': income, 'expense': expense};
+  }
+
+  Future<void> purgeEncryptedDatabase() async {
+    final activeDb = _db;
+    _db = null;
+    await activeDb?.close();
+
+    final path = await databasePath();
+    final file = File(path);
+    if (await file.exists()) {
+      await file.delete();
+    }
+    await _secureKeyService.deleteDbKey();
   }
 }

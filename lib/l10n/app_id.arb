@@ -2,6 +2,7 @@
   "@@locale": "id",
   "appTitle": "FinSage",
   "unexpectedError": "Terjadi kesalahan tak terduga",
+  "databaseOpenFailed": "Gagal membuka data lokal terenkripsi. Ini bisa terjadi setelah install ulang. Pulihkan dari backup atau reset data lokal.",
   "signInGoogle": "Masuk dengan Google",
   "googleSignInConfigMissing": "GOOGLE_SERVER_CLIENT_ID belum diisi. Tambahkan di dart-define untuk autentikasi backup Google Drive.",
   "googleAuthUnavailable": "Autentikasi Google tidak tersedia. Silakan login ulang lalu coba lagi.",
