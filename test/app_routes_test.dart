@@ -9,6 +9,7 @@ void main() {
       AppRoutes.auth,
       AppRoutes.dashboard,
       AppRoutes.transactions,
+      AppRoutes.transactionCategories,
       AppRoutes.budgets,
       AppRoutes.reports,
       AppRoutes.settingsRoute,
@@ -20,7 +21,8 @@ void main() {
     }
   });
 
-  test('unknown route falls back to auth gate while keeping requested name', () {
+  test('unknown route falls back to auth gate while keeping requested name',
+      () {
     const unknown = '/unknown';
     final route = AppRoutes.onGenerateRoute(const RouteSettings(name: unknown));
     expect(route.settings.name, unknown);

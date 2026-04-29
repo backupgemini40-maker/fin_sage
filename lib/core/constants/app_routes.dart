@@ -5,6 +5,7 @@ import 'package:fin_sage/features/dashboard/dashboard_page.dart';
 import 'package:fin_sage/features/recovery/recovery_page.dart';
 import 'package:fin_sage/features/reports/reports_page.dart';
 import 'package:fin_sage/features/settings/settings_page.dart';
+import 'package:fin_sage/features/transactions/transaction_categories_page.dart';
 import 'package:fin_sage/features/transactions/transactions_page.dart';
 import 'package:flutter/material.dart';
 
@@ -13,6 +14,7 @@ class AppRoutes {
   static const String auth = '/auth';
   static const String dashboard = '/dashboard';
   static const String transactions = '/transactions';
+  static const String transactionCategories = '/transactions/categories';
   static const String budgets = '/budgets';
   static const String reports = '/reports';
   static const String settingsRoute = '/settings';
@@ -28,6 +30,8 @@ class AppRoutes {
         return _material(const DashboardPage(), settings);
       case transactions:
         return _material(const TransactionsPage(), settings);
+      case transactionCategories:
+        return _material(const TransactionCategoriesPage(), settings);
       case budgets:
         return _material(const BudgetsPage(), settings);
       case reports:
@@ -41,7 +45,8 @@ class AppRoutes {
     }
   }
 
-  static MaterialPageRoute<dynamic> _material(Widget child, RouteSettings settings) {
+  static MaterialPageRoute<dynamic> _material(
+      Widget child, RouteSettings settings) {
     return MaterialPageRoute(builder: (_) => child, settings: settings);
   }
 }

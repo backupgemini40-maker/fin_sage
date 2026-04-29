@@ -27,7 +27,8 @@ class TransactionsPage extends StatelessWidget {
           title: Text(l10n.transactionsTitle),
           actions: [
             IconButton(
-              onPressed: () => _showCreateCategoryDialog(context),
+              onPressed: () => Navigator.of(context)
+                  .pushNamed(AppRoutes.transactionCategories),
               tooltip: l10n.manageCategories,
               icon: const Icon(Icons.category_outlined),
             ),
@@ -38,7 +39,8 @@ class TransactionsPage extends StatelessWidget {
           label: Text(l10n.addTransaction),
           icon: const Icon(Icons.add),
         ),
-        bottomNavigationBar: const AppBottomNav(currentRoute: AppRoutes.transactions),
+        bottomNavigationBar:
+            const AppBottomNav(currentRoute: AppRoutes.transactions),
         body: SafeArea(
           child: BlocConsumer<TransactionCubit, TransactionState>(
             listenWhen: (previous, current) => previous.error != current.error,
@@ -94,19 +96,25 @@ class TransactionsPage extends StatelessWidget {
                       _FilterChip(
                         label: l10n.allType,
                         active: state.filter == TransactionFilter.all,
-                        onTap: () => context.read<TransactionCubit>().setFilter(TransactionFilter.all),
+                        onTap: () => context
+                            .read<TransactionCubit>()
+                            .setFilter(TransactionFilter.all),
                       ),
                       const SizedBox(width: 8),
                       _FilterChip(
                         label: l10n.incomeType,
                         active: state.filter == TransactionFilter.income,
-                        onTap: () => context.read<TransactionCubit>().setFilter(TransactionFilter.income),
+                        onTap: () => context
+                            .read<TransactionCubit>()
+                            .setFilter(TransactionFilter.income),
                       ),
                       const SizedBox(width: 8),
                       _FilterChip(
                         label: l10n.expenseType,
                         active: state.filter == TransactionFilter.expense,
-                        onTap: () => context.read<TransactionCubit>().setFilter(TransactionFilter.expense),
+                        onTap: () => context
+                            .read<TransactionCubit>()
+                            .setFilter(TransactionFilter.expense),
                       ),
                     ],
                   ),
@@ -120,7 +128,9 @@ class TransactionsPage extends StatelessWidget {
                           Text(l10n.monthlyIncome),
                           Text(
                             incomeTotal.toCurrency(locale),
-                            style: TextStyle(color: Colors.green.shade700, fontWeight: FontWeight.w700),
+                            style: TextStyle(
+                                color: Colors.green.shade700,
+                                fontWeight: FontWeight.w700),
                           ),
                           const SizedBox(height: 8),
                           Text(l10n.monthlyExpense),
@@ -144,8 +154,11 @@ class TransactionsPage extends StatelessWidget {
                   else
                     ...filteredItems.map((tx) {
                       final isIncome = tx.type == TransactionType.income;
-                      final amountColor = isIncome ? Colors.green.shade700 : Theme.of(context).colorScheme.error;
-                      final categoryName = _categoryNameById(state.categories, tx.categoryId);
+                      final amountColor = isIncome
+                          ? Colors.green.shade700
+                          : Theme.of(context).colorScheme.error;
+                      final categoryName =
+                          _categoryNameById(state.categories, tx.categoryId);
 
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 10),
@@ -153,7 +166,9 @@ class TransactionsPage extends StatelessWidget {
                           child: ListTile(
                             leading: Icon(
                               isIncome ? Icons.south_west : Icons.north_east,
-                              color: _categoryColor(state.categories, tx.categoryId) ?? amountColor,
+                              color: _categoryColor(
+                                      state.categories, tx.categoryId) ??
+                                  amountColor,
                             ),
                             title: Text(tx.title),
                             subtitle: Text(
@@ -164,17 +179,24 @@ class TransactionsPage extends StatelessWidget {
                               children: [
                                 Text(
                                   '${isIncome ? '+' : '-'}${tx.amount.toCurrency(locale)}',
-                                  style: TextStyle(color: amountColor, fontWeight: FontWeight.w700),
+                                  style: TextStyle(
+                                      color: amountColor,
+                                      fontWeight: FontWeight.w700),
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.edit_outlined),
                                   tooltip: l10n.updateActionLabel,
-                                  onPressed: tx.id == null ? null : () => _showTransactionForm(context, existing: tx),
+                                  onPressed: tx.id == null
+                                      ? null
+                                      : () => _showTransactionForm(context,
+                                          existing: tx),
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.delete_outline),
                                   tooltip: l10n.deleteActionLabel,
-                                  onPressed: tx.id == null ? null : () => _confirmDelete(context, tx.id!),
+                                  onPressed: tx.id == null
+                                      ? null
+                                      : () => _confirmDelete(context, tx.id!),
                                 ),
                               ],
                             ),
@@ -219,20 +241,26 @@ class TransactionsPage extends StatelessWidget {
     }
   }
 
-  Future<void> _showTransactionForm(BuildContext context, {TransactionModel? existing}) async {
+  Future<void> _showTransactionForm(BuildContext context,
+      {TransactionModel? existing}) async {
     final l10n = AppLocalizations.of(context);
     final localeTag = Localizations.localeOf(context).toLanguageTag();
     final formKey = GlobalKey<FormState>();
     final titleCtrl = TextEditingController(text: existing?.title ?? '');
-    final amountCtrl = TextEditingController(text: existing == null ? '' : existing.amount.toStringAsFixed(0));
+    final amountCtrl = TextEditingController(
+        text: existing == null ? '' : existing.amount.toStringAsFixed(0));
     DateTime selectedDate = existing?.date ?? DateTime.now();
     TransactionType selectedType = existing?.type ?? TransactionType.expense;
+    final cubit = context.read<TransactionCubit>();
     final state = context.read<TransactionCubit>().state;
-    final categories = state.categories;
-    final hasExistingCategory = existing != null && categories.any((category) => category.id == existing.categoryId);
+    var categories = List<CategoryModel>.from(state.categories);
+    final hasExistingCategory = existing != null &&
+        categories.any((category) => category.id == existing.categoryId);
     int selectedCategoryId = hasExistingCategory
         ? existing.categoryId
-        : (categories.isNotEmpty ? (categories.first.id ?? 1) : (existing?.categoryId ?? 1));
+        : (categories.isNotEmpty
+            ? (categories.first.id ?? 1)
+            : (existing?.categoryId ?? 1));
 
     await showModalBottomSheet<void>(
       context: context,
@@ -255,13 +283,16 @@ class TransactionsPage extends StatelessWidget {
                     TextFormField(
                       controller: titleCtrl,
                       decoration: InputDecoration(labelText: l10n.titleLabel),
-                      validator: (v) => v == null || v.trim().isEmpty ? l10n.requiredField : null,
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? l10n.requiredField
+                          : null,
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: amountCtrl,
                       decoration: InputDecoration(labelText: l10n.amountLabel),
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
                       validator: (v) {
                         final code = Validators.amount(v);
                         return _errorFromCode(l10n, code);
@@ -279,12 +310,14 @@ class TransactionsPage extends StatelessWidget {
                         ChoiceChip(
                           label: Text(l10n.expenseType),
                           selected: selectedType == TransactionType.expense,
-                          onSelected: (_) => setState(() => selectedType = TransactionType.expense),
+                          onSelected: (_) => setState(
+                              () => selectedType = TransactionType.expense),
                         ),
                         ChoiceChip(
                           label: Text(l10n.incomeType),
                           selected: selectedType == TransactionType.income,
-                          onSelected: (_) => setState(() => selectedType = TransactionType.income),
+                          onSelected: (_) => setState(
+                              () => selectedType = TransactionType.income),
                         ),
                       ],
                     ),
@@ -292,7 +325,8 @@ class TransactionsPage extends StatelessWidget {
                     if (categories.isNotEmpty)
                       DropdownButtonFormField<int>(
                         value: selectedCategoryId,
-                        decoration: InputDecoration(labelText: l10n.categoryLabel),
+                        decoration:
+                            InputDecoration(labelText: l10n.categoryLabel),
                         items: categories
                             .map(
                               (category) => DropdownMenuItem<int>(
@@ -313,20 +347,43 @@ class TransactionsPage extends StatelessWidget {
                         children: [
                           TextFormField(
                             enabled: false,
-                            decoration: InputDecoration(labelText: l10n.categoryLabel, hintText: '#1'),
+                            decoration: InputDecoration(
+                                labelText: l10n.categoryLabel, hintText: '#1'),
                           ),
                           const SizedBox(height: 8),
                           OutlinedButton.icon(
-                            onPressed: () => _showCreateCategoryDialog(sheetContext),
+                            onPressed: () async {
+                              await Navigator.of(sheetContext)
+                                  .pushNamed(AppRoutes.transactionCategories);
+                              if (!sheetContext.mounted) {
+                                return;
+                              }
+                              final updatedCategories =
+                                  List<CategoryModel>.from(
+                                      cubit.state.categories);
+                              if (updatedCategories.isEmpty) {
+                                return;
+                              }
+                              setState(() {
+                                categories = updatedCategories;
+                                final stillExists = categories.any((category) =>
+                                    category.id == selectedCategoryId);
+                                if (!stillExists) {
+                                  selectedCategoryId =
+                                      categories.first.id ?? selectedCategoryId;
+                                }
+                              });
+                            },
                             icon: const Icon(Icons.add),
-                            label: Text(l10n.addCategory),
+                            label: Text(l10n.manageCategories),
                           ),
                         ],
                       ),
                     const SizedBox(height: 12),
                     ListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: Text(DateFormat.yMMMd(localeTag).format(selectedDate)),
+                      title: Text(
+                          DateFormat.yMMMd(localeTag).format(selectedDate)),
                       subtitle: Text(l10n.dateLabel),
                       trailing: const Icon(Icons.calendar_today_outlined),
                       onTap: () async {
@@ -352,7 +409,10 @@ class TransactionsPage extends StatelessWidget {
                           alignment: Alignment.centerLeft,
                           child: Padding(
                             padding: const EdgeInsets.only(bottom: 8),
-                            child: Text(error, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                            child: Text(error,
+                                style: TextStyle(
+                                    color:
+                                        Theme.of(context).colorScheme.error)),
                           ),
                         );
                       },
@@ -372,7 +432,8 @@ class TransactionsPage extends StatelessWidget {
                         final model = TransactionModel(
                           id: existing?.id,
                           title: titleCtrl.text.trim(),
-                          amount: double.parse(amountCtrl.text.replaceAll(',', '.')),
+                          amount: double.parse(
+                              amountCtrl.text.replaceAll(',', '.')),
                           date: selectedDate,
                           categoryId: selectedCategoryId,
                           type: selectedType,
@@ -380,13 +441,15 @@ class TransactionsPage extends StatelessWidget {
                         await HapticFeedback.lightImpact();
 
                         if (existing == null) {
-                          context.read<TransactionCubit>().createTransaction(model);
+                          cubit.createTransaction(model);
                         } else {
-                          context.read<TransactionCubit>().updateTransaction(model);
+                          cubit.updateTransaction(model);
                         }
                         Navigator.pop(sheetContext);
                       },
-                      child: Text(existing == null ? l10n.saveLabel : l10n.updateActionLabel),
+                      child: Text(existing == null
+                          ? l10n.saveLabel
+                          : l10n.updateActionLabel),
                     ),
                   ],
                 ),
@@ -396,160 +459,6 @@ class TransactionsPage extends StatelessWidget {
         );
       },
     );
-  }
-
-  Future<void> _showCreateCategoryDialog(BuildContext context) async {
-    final l10n = AppLocalizations.of(context);
-    final formKey = GlobalKey<FormState>();
-    final nameCtrl = TextEditingController();
-    final colorCtrl = TextEditingController(text: '#0D3B66');
-    final iconCtrl = TextEditingController(text: 'wallet');
-    final cubit = context.read<TransactionCubit>();
-
-    final created = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) {
-        var categories = List<CategoryModel>.from(cubit.state.categories);
-        return StatefulBuilder(
-          builder: (dialogContext, setDialogState) {
-            return AlertDialog(
-              title: Text(l10n.manageCategories),
-              content: SingleChildScrollView(
-                child: Form(
-                  key: formKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (categories.isNotEmpty) ...[
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            l10n.categoryLabel,
-                            style: Theme.of(dialogContext).textTheme.titleSmall,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        ConstrainedBox(
-                          constraints: const BoxConstraints(maxHeight: 180),
-                          child: ListView.separated(
-                            shrinkWrap: true,
-                            itemCount: categories.length,
-                            separatorBuilder: (_, __) => const Divider(height: 1),
-                            itemBuilder: (_, index) {
-                              final category = categories[index];
-                              return ListTile(
-                                dense: true,
-                                contentPadding: EdgeInsets.zero,
-                                title: Text(category.name),
-                                subtitle: Text(category.colorHex),
-                                trailing: category.id == null || category.id == 1
-                                    ? null
-                                    : IconButton(
-                                        icon: const Icon(Icons.archive_outlined),
-                                        onPressed: () async {
-                                          final approved = await _confirmArchiveCategory(
-                                            dialogContext,
-                                            category.name,
-                                          );
-                                          if (!approved || category.id == null) {
-                                            return;
-                                          }
-                                          await HapticFeedback.selectionClick();
-                                          await cubit.archiveCategory(category.id!);
-                                          if (cubit.state.error == null) {
-                                            setDialogState(() {
-                                              categories = List<CategoryModel>.from(cubit.state.categories);
-                                            });
-                                          }
-                                        },
-                                      ),
-                              );
-                            },
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-                      TextFormField(
-                        controller: nameCtrl,
-                        decoration: InputDecoration(labelText: l10n.categoryNameLabel),
-                        validator: (value) => _errorFromCode(l10n, Validators.categoryName(value)),
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: colorCtrl,
-                        decoration: InputDecoration(labelText: l10n.colorHexLabel),
-                        validator: (value) => _errorFromCode(l10n, Validators.hexColor(value)),
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: iconCtrl,
-                        decoration: InputDecoration(labelText: l10n.iconLabel),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext, false),
-                  child: Text(l10n.cancelLabel),
-                ),
-                FilledButton(
-                  onPressed: () async {
-                    if (!formKey.currentState!.validate()) {
-                      return;
-                    }
-                    await HapticFeedback.lightImpact();
-                    await cubit.createCategory(
-                          CategoryModel(
-                            id: null,
-                            name: nameCtrl.text.trim(),
-                            colorHex: colorCtrl.text.trim().isEmpty ? '#0D3B66' : colorCtrl.text.trim(),
-                            icon: iconCtrl.text.trim().isEmpty ? 'wallet' : iconCtrl.text.trim(),
-                          ),
-                        );
-                    if (cubit.state.error == null) {
-                      if (dialogContext.mounted) {
-                        Navigator.pop(dialogContext, true);
-                      }
-                    }
-                  },
-                  child: Text(l10n.saveLabel),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-
-    if (created == true && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.categoryCreated)));
-    }
-  }
-
-  Future<bool> _confirmArchiveCategory(BuildContext context, String categoryName) async {
-    final l10n = AppLocalizations.of(context);
-    final approved = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: Text(l10n.archiveCategoryTitle),
-          content: Text(l10n.archiveCategoryBody(categoryName)),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: Text(l10n.cancelLabel),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(dialogContext, true),
-              child: Text(l10n.archiveActionLabel),
-            ),
-          ],
-        );
-      },
-    );
-    return approved == true;
   }
 
   String? _errorFromCode(AppLocalizations l10n, String? code) {
