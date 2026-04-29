@@ -300,15 +300,49 @@ jobs:
       - name: Prepare keystore
         run: |
           echo "$KEYSTORE_B64" | base64 --decode > android/app/fin_sage.keystore
+
+      - name: Resolve keystore private key password
+        run: |
+          tmp_dir="$(mktemp -d)"
+          echo "finsage-signing-check" > "$tmp_dir/input.txt"
+          (
+            cd "$tmp_dir"
+            zip -q sample.jar input.txt
+          )
+
+          resolved_key_pass=""
+          if jarsigner \
+            -keystore android/app/fin_sage.keystore \
+            -storepass "$KEYSTORE_PASS" \
+            -keypass "$KEY_PASS" \
+            "$tmp_dir/sample.jar" \
+            "$KEY_ALIAS" >/tmp/jarsigner_probe.log 2>&1; then
+            resolved_key_pass="$KEY_PASS"
+          elif jarsigner \
+            -keystore android/app/fin_sage.keystore \
+            -storepass "$KEYSTORE_PASS" \
+            -keypass "$KEYSTORE_PASS" \
+            "$tmp_dir/sample.jar" \
+            "$KEY_ALIAS" >/tmp/jarsigner_probe.log 2>&1; then
+            resolved_key_pass="$KEYSTORE_PASS"
+            echo "KEY_PASS did not unlock private key. Falling back to KEYSTORE_PASS." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Unable to unlock private key with KEY_PASS or KEYSTORE_PASS."
+            sed -n '1,120p' /tmp/jarsigner_probe.log
+            exit 1
+          fi
+
+          echo "RESOLVED_KEY_PASS=$resolved_key_pass" >> "$GITHUB_ENV"
+
           cat <<EOT > android/key.properties
           storePassword=$KEYSTORE_PASS
-          keyPassword=$KEY_PASS
+          keyPassword=$resolved_key_pass
           keyAlias=$KEY_ALIAS
           storeFile=fin_sage.keystore
           EOT
           cat <<EOT > android/app/key.properties
           storePassword=$KEYSTORE_PASS
-          keyPassword=$KEY_PASS
+          keyPassword=$resolved_key_pass
           keyAlias=$KEY_ALIAS
           storeFile=fin_sage.keystore
           EOT
@@ -381,7 +415,7 @@ jobs:
             -keystore android/app/fin_sage.keystore \
             -alias "$KEY_ALIAS" \
             -storepass "$KEYSTORE_PASS" \
-            -keypass "$KEY_PASS" > /tmp/release_keystore_info.txt
+            -keypass "$RESOLVED_KEY_PASS" > /tmp/release_keystore_info.txt
           sha1="$(sed -n 's/.*SHA1: //p' /tmp/release_keystore_info.txt | head -n1)"
           sha256="$(sed -n 's/.*SHA256: //p' /tmp/release_keystore_info.txt | head -n1)"
           if [ -z "$sha1" ] || [ -z "$sha256" ]; then
