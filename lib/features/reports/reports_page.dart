@@ -5,6 +5,7 @@ import 'package:fin_sage/core/errors/app_error_codes.dart';
 import 'package:fin_sage/core/constants/app_routes.dart';
 import 'package:fin_sage/core/utils/extensions.dart';
 import 'package:fin_sage/core/widgets/app_bottom_nav.dart';
+import 'package:fin_sage/core/widgets/atmospheric_scaffold_body.dart';
 import 'package:fin_sage/core/widgets/loading_skeleton.dart';
 import 'package:fin_sage/features/reports/report_generator.dart';
 import 'package:fin_sage/data/models/transaction_model.dart';
@@ -53,163 +54,185 @@ class _ReportsPageState extends State<ReportsPage> {
     return ErrorBoundary(
       child: Scaffold(
         appBar: AppBar(title: Text(l10n.reportsTitle)),
-        bottomNavigationBar: const AppBottomNav(currentRoute: AppRoutes.reports),
+        bottomNavigationBar:
+            const AppBottomNav(currentRoute: AppRoutes.reports),
         body: SafeArea(
-          child: BlocBuilder<TransactionCubit, TransactionState>(
-            builder: (context, txState) {
-              if (txState.loading) {
-                return ListView(
+          child: AtmosphericScaffoldBody(
+            child: BlocBuilder<TransactionCubit, TransactionState>(
+              builder: (context, txState) {
+                if (txState.loading) {
+                  return ListView(
+                    padding: const EdgeInsets.all(16),
+                    children: const [
+                      LoadingSkeleton(height: 46),
+                      SizedBox(height: 12),
+                      LoadingSkeleton(height: 34),
+                      SizedBox(height: 12),
+                      LoadingSkeleton(height: 120),
+                      SizedBox(height: 12),
+                      LoadingSkeleton(height: 48),
+                      SizedBox(height: 12),
+                      LoadingSkeleton(height: 48),
+                    ],
+                  );
+                }
+
+                final filteredTxs = _filterTransactions(txState.items);
+                final income = filteredTxs
+                    .where((tx) => tx.type == TransactionType.income)
+                    .fold<double>(0, (sum, tx) => sum + tx.amount);
+                final expense = filteredTxs
+                    .where((tx) => tx.type == TransactionType.expense)
+                    .fold<double>(0, (sum, tx) => sum + tx.amount);
+                final balance = income - expense;
+
+                return Padding(
                   padding: const EdgeInsets.all(16),
-                  children: const [
-                    LoadingSkeleton(height: 46),
-                    SizedBox(height: 12),
-                    LoadingSkeleton(height: 34),
-                    SizedBox(height: 12),
-                    LoadingSkeleton(height: 120),
-                    SizedBox(height: 12),
-                    LoadingSkeleton(height: 48),
-                    SizedBox(height: 12),
-                    LoadingSkeleton(height: 48),
-                  ],
-                );
-              }
-
-              final filteredTxs = _filterTransactions(txState.items);
-              final income = filteredTxs
-                  .where((tx) => tx.type == TransactionType.income)
-                  .fold<double>(0, (sum, tx) => sum + tx.amount);
-              final expense = filteredTxs
-                  .where((tx) => tx.type == TransactionType.expense)
-                  .fold<double>(0, (sum, tx) => sum + tx.amount);
-              final balance = income - expense;
-
-              return Padding(
-                padding: const EdgeInsets.all(16),
-                child: BlocBuilder<ReportCubit, ReportState>(
-                  builder: (context, state) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        OutlinedButton.icon(
-                          onPressed: state.loading ? null : () => _pickMonth(context),
-                          icon: const Icon(Icons.calendar_month_outlined),
-                          label: Text(
-                            l10n.selectedMonthLabel(
-                              DateFormat.yMMMM(localeTag).format(_selectedMonth),
+                  child: BlocBuilder<ReportCubit, ReportState>(
+                    builder: (context, state) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          OutlinedButton.icon(
+                            onPressed: state.loading
+                                ? null
+                                : () => _pickMonth(context),
+                            icon: const Icon(Icons.calendar_month_outlined),
+                            label: Text(
+                              l10n.selectedMonthLabel(
+                                DateFormat.yMMMM(localeTag)
+                                    .format(_selectedMonth),
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 12),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            _ReportFilterChip(
-                              label: l10n.allType,
-                              selected: _typeFilter == _ReportTypeFilter.all,
-                              onTap: () => setState(() => _typeFilter = _ReportTypeFilter.all),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              _ReportFilterChip(
+                                label: l10n.allType,
+                                selected: _typeFilter == _ReportTypeFilter.all,
+                                onTap: () => setState(
+                                    () => _typeFilter = _ReportTypeFilter.all),
+                              ),
+                              _ReportFilterChip(
+                                label: l10n.incomeType,
+                                selected:
+                                    _typeFilter == _ReportTypeFilter.income,
+                                onTap: () => setState(() =>
+                                    _typeFilter = _ReportTypeFilter.income),
+                              ),
+                              _ReportFilterChip(
+                                label: l10n.expenseType,
+                                selected:
+                                    _typeFilter == _ReportTypeFilter.expense,
+                                onTap: () => setState(() =>
+                                    _typeFilter = _ReportTypeFilter.expense),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(l10n
+                                      .transactionCount(filteredTxs.length)),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                      '${l10n.monthlyIncome}: ${income.toCurrency(localeTag)}'),
+                                  Text(
+                                      '${l10n.monthlyExpense}: ${expense.toCurrency(localeTag)}'),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    '${l10n.netBalance}: ${balance.toCurrency(localeTag)}',
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w700),
+                                  ),
+                                ],
+                              ),
                             ),
-                            _ReportFilterChip(
-                              label: l10n.incomeType,
-                              selected: _typeFilter == _ReportTypeFilter.income,
-                              onTap: () => setState(() => _typeFilter = _ReportTypeFilter.income),
-                            ),
-                            _ReportFilterChip(
-                              label: l10n.expenseType,
-                              selected: _typeFilter == _ReportTypeFilter.expense,
-                              onTap: () => setState(() => _typeFilter = _ReportTypeFilter.expense),
+                          ),
+                          const SizedBox(height: 12),
+                          FilledButton.icon(
+                            onPressed: state.loading
+                                ? null
+                                : () {
+                                    context.read<ReportCubit>().run(() async {
+                                      if (filteredTxs.isEmpty) {
+                                        throw const AppException(
+                                          'No data to export',
+                                          code: AppErrorCodes.noDataToExport,
+                                        );
+                                      }
+                                      final title = l10n.monthlyReportTitle(
+                                        DateFormat.yMMMM(localeTag)
+                                            .format(_selectedMonth),
+                                      );
+                                      final pdf = await generator.generatePdf(
+                                        filteredTxs,
+                                        title: title,
+                                        labels: reportLabels,
+                                      );
+                                      await Printing.layoutPdf(
+                                          onLayout: (_) async => pdf);
+                                    });
+                                  },
+                            icon: const Icon(Icons.picture_as_pdf),
+                            label: Text(l10n.exportPdf),
+                          ),
+                          const SizedBox(height: 12),
+                          OutlinedButton.icon(
+                            onPressed: state.loading
+                                ? null
+                                : () {
+                                    context.read<ReportCubit>().run(() async {
+                                      if (filteredTxs.isEmpty) {
+                                        throw const AppException(
+                                          'No data to export',
+                                          code: AppErrorCodes.noDataToExport,
+                                        );
+                                      }
+                                      final file =
+                                          await generator.exportCsvFile(
+                                        filteredTxs,
+                                        labels: reportLabels,
+                                      );
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                              content: Text(
+                                                  l10n.csvSaved(file.path))),
+                                        );
+                                      }
+                                    });
+                                  },
+                            icon: const Icon(Icons.table_chart),
+                            label: Text(l10n.exportCsv),
+                          ),
+                          if (state.loading) ...[
+                            const SizedBox(height: 24),
+                            const Center(child: CircularProgressIndicator()),
+                          ],
+                          if (state.error != null) ...[
+                            const SizedBox(height: 24),
+                            Text(
+                              localizeErrorMessage(l10n, state.error!),
+                              style: TextStyle(
+                                  color: Theme.of(context).colorScheme.error),
                             ),
                           ],
-                        ),
-                        const SizedBox(height: 12),
-                        Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(l10n.transactionCount(filteredTxs.length)),
-                                const SizedBox(height: 8),
-                                Text('${l10n.monthlyIncome}: ${income.toCurrency(localeTag)}'),
-                                Text('${l10n.monthlyExpense}: ${expense.toCurrency(localeTag)}'),
-                                const SizedBox(height: 8),
-                                Text(
-                                  '${l10n.netBalance}: ${balance.toCurrency(localeTag)}',
-                                  style: const TextStyle(fontWeight: FontWeight.w700),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        FilledButton.icon(
-                          onPressed: state.loading
-                              ? null
-                              : () {
-                                  context.read<ReportCubit>().run(() async {
-                                    if (filteredTxs.isEmpty) {
-                                      throw const AppException(
-                                        'No data to export',
-                                        code: AppErrorCodes.noDataToExport,
-                                      );
-                                    }
-                                    final title = l10n.monthlyReportTitle(
-                                      DateFormat.yMMMM(localeTag).format(_selectedMonth),
-                                    );
-                                    final pdf = await generator.generatePdf(
-                                      filteredTxs,
-                                      title: title,
-                                      labels: reportLabels,
-                                    );
-                                    await Printing.layoutPdf(onLayout: (_) async => pdf);
-                                  });
-                                },
-                          icon: const Icon(Icons.picture_as_pdf),
-                          label: Text(l10n.exportPdf),
-                        ),
-                        const SizedBox(height: 12),
-                        OutlinedButton.icon(
-                          onPressed: state.loading
-                              ? null
-                              : () {
-                                  context.read<ReportCubit>().run(() async {
-                                    if (filteredTxs.isEmpty) {
-                                      throw const AppException(
-                                        'No data to export',
-                                        code: AppErrorCodes.noDataToExport,
-                                      );
-                                    }
-                                    final file = await generator.exportCsvFile(
-                                      filteredTxs,
-                                      labels: reportLabels,
-                                    );
-                                    if (context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text(l10n.csvSaved(file.path))),
-                                      );
-                                    }
-                                  });
-                                },
-                          icon: const Icon(Icons.table_chart),
-                          label: Text(l10n.exportCsv),
-                        ),
-                        if (state.loading) ...[
-                          const SizedBox(height: 24),
-                          const Center(child: CircularProgressIndicator()),
                         ],
-                        if (state.error != null) ...[
-                          const SizedBox(height: 24),
-                          Text(
-                            localizeErrorMessage(l10n, state.error!),
-                            style: TextStyle(color: Theme.of(context).colorScheme.error),
-                          ),
-                        ],
-                      ],
-                    );
-                  },
-                ),
-              );
-            },
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -218,15 +241,16 @@ class _ReportsPageState extends State<ReportsPage> {
 
   List<TransactionModel> _filterTransactions(List<TransactionModel> items) {
     return items
-        .where((tx) => tx.date.year == _selectedMonth.year && tx.date.month == _selectedMonth.month)
+        .where((tx) =>
+            tx.date.year == _selectedMonth.year &&
+            tx.date.month == _selectedMonth.month)
         .where((tx) {
-          return switch (_typeFilter) {
-            _ReportTypeFilter.all => true,
-            _ReportTypeFilter.income => tx.type == TransactionType.income,
-            _ReportTypeFilter.expense => tx.type == TransactionType.expense,
-          };
-        })
-        .toList(growable: false);
+      return switch (_typeFilter) {
+        _ReportTypeFilter.all => true,
+        _ReportTypeFilter.income => tx.type == TransactionType.income,
+        _ReportTypeFilter.expense => tx.type == TransactionType.expense,
+      };
+    }).toList(growable: false);
   }
 
   Future<void> _pickMonth(BuildContext context) async {

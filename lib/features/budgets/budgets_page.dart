@@ -4,6 +4,7 @@ import 'package:fin_sage/core/utils/extensions.dart';
 import 'package:fin_sage/core/utils/validators.dart';
 import 'package:fin_sage/core/constants/app_routes.dart';
 import 'package:fin_sage/core/widgets/app_bottom_nav.dart';
+import 'package:fin_sage/core/widgets/atmospheric_scaffold_body.dart';
 import 'package:fin_sage/core/widgets/loading_skeleton.dart';
 import 'package:fin_sage/core/constants/lottie_placeholders.dart';
 import 'package:fin_sage/data/models/budget_model.dart';
@@ -44,127 +45,132 @@ class _BudgetsPageState extends State<BudgetsPage> {
           child: const Icon(Icons.add_chart),
         ),
         body: SafeArea(
-          child: BlocConsumer<BudgetCubit, BudgetState>(
-            listenWhen: (previous, current) => previous.error != current.error,
-            listener: (context, state) {
-              if (state.error == null) {
-                return;
-              }
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(localizeErrorMessage(l10n, state.error!)),
-                  backgroundColor: Theme.of(context).colorScheme.error,
-                ),
-              );
-            },
-            builder: (context, state) {
-              if (state.loading) {
-                return ListView.separated(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: 5,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (_, __) => const LoadingSkeleton(height: 96),
-                );
-              }
-
-              if (state.items.isEmpty) {
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Lottie.asset(LottiePlaceholders.emptyStateAnimation,
-                            height: 140),
-                        const SizedBox(height: 12),
-                        Text(l10n.noBudgetYet, textAlign: TextAlign.center),
-                      ],
-                    ),
+          child: AtmosphericScaffoldBody(
+            child: BlocConsumer<BudgetCubit, BudgetState>(
+              listenWhen: (previous, current) =>
+                  previous.error != current.error,
+              listener: (context, state) {
+                if (state.error == null) {
+                  return;
+                }
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(localizeErrorMessage(l10n, state.error!)),
+                    backgroundColor: Theme.of(context).colorScheme.error,
                   ),
                 );
-              }
+              },
+              builder: (context, state) {
+                if (state.loading) {
+                  return ListView.separated(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: 5,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (_, __) => const LoadingSkeleton(height: 96),
+                  );
+                }
 
-              return RefreshIndicator(
-                onRefresh: context.read<BudgetCubit>().loadBudgets,
-                child: ListView.separated(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: state.items.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final budget = state.items[index];
-                    final ratio = budget.limitAmount == 0
-                        ? 0
-                        : (budget.usedAmount / budget.limitAmount);
-                    final progress = ratio.clamp(0, 1).toDouble();
-                    final isExceeded = ratio >= 1;
-                    final monthLabel =
-                        DateFormat.yMMMM(locale).format(budget.month);
-                    final categoryLabel = categoryMap[budget.categoryId] ??
-                        '#${budget.categoryId}';
+                if (state.items.isEmpty) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Lottie.asset(LottiePlaceholders.emptyStateAnimation,
+                              height: 140),
+                          const SizedBox(height: 12),
+                          Text(l10n.noBudgetYet, textAlign: TextAlign.center),
+                        ],
+                      ),
+                    ),
+                  );
+                }
 
-                    return Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    monthLabel,
-                                    style:
-                                        Theme.of(context).textTheme.titleMedium,
+                return RefreshIndicator(
+                  onRefresh: context.read<BudgetCubit>().loadBudgets,
+                  child: ListView.separated(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(16),
+                    itemCount: state.items.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final budget = state.items[index];
+                      final ratio = budget.limitAmount == 0
+                          ? 0
+                          : (budget.usedAmount / budget.limitAmount);
+                      final progress = ratio.clamp(0, 1).toDouble();
+                      final isExceeded = ratio >= 1;
+                      final monthLabel =
+                          DateFormat.yMMMM(locale).format(budget.month);
+                      final categoryLabel = categoryMap[budget.categoryId] ??
+                          '#${budget.categoryId}';
+
+                      return Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      monthLabel,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium,
+                                    ),
                                   ),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.edit_outlined),
-                                  tooltip: l10n.updateActionLabel,
-                                  onPressed: () => _showBudgetForm(context,
-                                      existing: budget),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete_outline),
-                                  tooltip: l10n.deleteActionLabel,
-                                  onPressed: budget.id == null
-                                      ? null
-                                      : () => _confirmDeleteBudget(
-                                          context, budget.id!),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Text('${l10n.categoryLabel}: $categoryLabel'),
-                            const SizedBox(height: 10),
-                            LinearProgressIndicator(
-                              value: progress,
-                              color: isExceeded
-                                  ? Theme.of(context).colorScheme.error
-                                  : Colors.green.shade700,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              '${(ratio * 100).toStringAsFixed(0)}%',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w700,
+                                  IconButton(
+                                    icon: const Icon(Icons.edit_outlined),
+                                    tooltip: l10n.updateActionLabel,
+                                    onPressed: () => _showBudgetForm(context,
+                                        existing: budget),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete_outline),
+                                    tooltip: l10n.deleteActionLabel,
+                                    onPressed: budget.id == null
+                                        ? null
+                                        : () => _confirmDeleteBudget(
+                                            context, budget.id!),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text('${l10n.categoryLabel}: $categoryLabel'),
+                              const SizedBox(height: 10),
+                              LinearProgressIndicator(
+                                value: progress,
                                 color: isExceeded
                                     ? Theme.of(context).colorScheme.error
-                                    : null,
+                                    : Colors.green.shade700,
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                                '${l10n.usedLabel}: ${budget.usedAmount.toCurrency(locale)}'),
-                            Text(
-                                '${l10n.limitLabel}: ${budget.limitAmount.toCurrency(locale)}'),
-                          ],
+                              const SizedBox(height: 8),
+                              Text(
+                                '${(ratio * 100).toStringAsFixed(0)}%',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  color: isExceeded
+                                      ? Theme.of(context).colorScheme.error
+                                      : null,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                  '${l10n.usedLabel}: ${budget.usedAmount.toCurrency(locale)}'),
+                              Text(
+                                  '${l10n.limitLabel}: ${budget.limitAmount.toCurrency(locale)}'),
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                ),
-              );
-            },
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
           ),
         ),
       ),

@@ -67,3 +67,9 @@ flutter:
     - assets/lottie/
     - assets/images/
     - assets/fonts/
+  fonts:
+    - family: RobotoCondensed
+      fonts:
+        - asset: assets/fonts/RobotoCondensed-Regular.ttf
+        - asset: assets/fonts/RobotoCondensed-Bold.ttf
+          weight: 700

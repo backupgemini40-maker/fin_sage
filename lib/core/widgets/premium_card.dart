@@ -8,6 +8,9 @@ class PremiumCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+    final secondary = Theme.of(context).colorScheme.secondary;
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 320),
       curve: Curves.easeOutCubic,
@@ -16,23 +19,40 @@ class PremiumCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         gradient: LinearGradient(
           colors: [
-            Theme.of(context).colorScheme.primary.withOpacity(0.98),
-            Theme.of(context).colorScheme.primary.withOpacity(0.82),
+            primary.withOpacity(0.97),
+            Color.lerp(primary, secondary, 0.28)!.withOpacity(0.92),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
+        border: Border.all(color: Colors.white.withOpacity(0.22), width: 1.1),
         boxShadow: [
           BoxShadow(
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.25),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
+            color: primary.withOpacity(0.26),
+            blurRadius: 26,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
-      child: DefaultTextStyle.merge(
-        style: const TextStyle(color: Colors.white),
-        child: child,
+      child: Stack(
+        children: [
+          Positioned(
+            right: -24,
+            top: -28,
+            child: Container(
+              height: 110,
+              width: 110,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.16),
+              ),
+            ),
+          ),
+          DefaultTextStyle.merge(
+            style: const TextStyle(color: Colors.white),
+            child: child,
+          ),
+        ],
       ),
     );
   }

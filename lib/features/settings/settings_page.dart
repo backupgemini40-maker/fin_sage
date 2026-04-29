@@ -7,6 +7,7 @@ import 'package:fin_sage/core/errors/error_boundary.dart';
 import 'package:fin_sage/core/errors/error_localizer.dart';
 import 'package:fin_sage/core/utils/extensions.dart';
 import 'package:fin_sage/core/widgets/app_bottom_nav.dart';
+import 'package:fin_sage/core/widgets/atmospheric_scaffold_body.dart';
 import 'package:fin_sage/l10n/generated/app_localizations.dart';
 import 'package:fin_sage/logic/auth/auth_cubit.dart';
 import 'package:fin_sage/logic/budgets/budget_cubit.dart';
@@ -30,201 +31,252 @@ class SettingsPage extends StatelessWidget {
     return ErrorBoundary(
       child: Scaffold(
         appBar: AppBar(title: Text(l10n.settingsTitle)),
-        bottomNavigationBar: const AppBottomNav(currentRoute: AppRoutes.settingsRoute),
+        bottomNavigationBar:
+            const AppBottomNav(currentRoute: AppRoutes.settingsRoute),
         body: SafeArea(
-          child: BlocConsumer<SettingsCubit, SettingsState>(
-            listenWhen: (previous, current) =>
-                previous.error != current.error ||
-                previous.lastCompletedOperation != current.lastCompletedOperation,
-            listener: (context, state) {
-              final messenger = ScaffoldMessenger.of(context);
-              if (state.error != null) {
-                final message = localizeErrorMessage(l10n, state.error!);
-                messenger.showSnackBar(
-                  SnackBar(
-                    content: Text(message),
-                    backgroundColor: Theme.of(context).colorScheme.error,
-                  ),
-                );
-                return;
-              }
+          child: AtmosphericScaffoldBody(
+            child: BlocConsumer<SettingsCubit, SettingsState>(
+              listenWhen: (previous, current) =>
+                  previous.error != current.error ||
+                  previous.lastCompletedOperation !=
+                      current.lastCompletedOperation,
+              listener: (context, state) {
+                final messenger = ScaffoldMessenger.of(context);
+                if (state.error != null) {
+                  final message = localizeErrorMessage(l10n, state.error!);
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: Text(message),
+                      backgroundColor: Theme.of(context).colorScheme.error,
+                    ),
+                  );
+                  return;
+                }
 
-              String? message;
-              switch (state.lastCompletedOperation) {
-                case SettingsOperation.backup:
-                  message = l10n.backupCompleted;
-                  break;
-                case SettingsOperation.preview:
-                  message = l10n.restorePreviewLoaded;
-                  break;
-                case SettingsOperation.restore:
-                  message = l10n.restoreCompleted;
-                  unawaited(_refreshAfterRestore(context));
-                  break;
-                case SettingsOperation.reset:
-                  message = l10n.localDataResetCompleted;
-                  break;
-                case SettingsOperation.autoBackupValidation:
-                  message = l10n.autoBackupValidationScheduled;
-                  unawaited(context.read<SettingsCubit>().refreshAutoBackupTelemetry());
-                  break;
-                case SettingsOperation.none:
-                  break;
-              }
+                String? message;
+                switch (state.lastCompletedOperation) {
+                  case SettingsOperation.backup:
+                    message = l10n.backupCompleted;
+                    break;
+                  case SettingsOperation.preview:
+                    message = l10n.restorePreviewLoaded;
+                    break;
+                  case SettingsOperation.restore:
+                    message = l10n.restoreCompleted;
+                    unawaited(_refreshAfterRestore(context));
+                    break;
+                  case SettingsOperation.reset:
+                    message = l10n.localDataResetCompleted;
+                    break;
+                  case SettingsOperation.autoBackupValidation:
+                    message = l10n.autoBackupValidationScheduled;
+                    unawaited(context
+                        .read<SettingsCubit>()
+                        .refreshAutoBackupTelemetry());
+                    break;
+                  case SettingsOperation.none:
+                    break;
+                }
 
-              if (message != null) {
-                unawaited(HapticFeedback.lightImpact());
-                messenger.showSnackBar(SnackBar(content: Text(message)));
-              }
-            },
-            builder: (context, state) {
-              final cubit = context.read<SettingsCubit>();
+                if (message != null) {
+                  unawaited(HapticFeedback.lightImpact());
+                  messenger.showSnackBar(SnackBar(content: Text(message)));
+                }
+              },
+              builder: (context, state) {
+                final cubit = context.read<SettingsCubit>();
 
-              return ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  if (state.backupInProgress) ...[
-                    Semantics(
-                      label: l10n.operationInProgress,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const LinearProgressIndicator(),
-                          const SizedBox(height: 8),
-                          Text(
-                            l10n.operationInProgress,
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(l10n.darkMode),
-                    trailing: Switch(
-                      value: state.themeMode == ThemeMode.dark,
-                      onChanged: (value) => cubit.setThemeMode(value ? ThemeMode.dark : ThemeMode.light),
-                    ),
-                  ),
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(l10n.languageLabel),
-                    trailing: DropdownButton<String>(
-                      isDense: true,
-                      value: state.locale?.languageCode ?? 'system',
-                      onChanged: (value) {
-                        if (value == null || value == 'system') {
-                          cubit.setLocale(null);
-                          return;
-                        }
-                        cubit.setLocale(Locale(value));
-                      },
-                      items: [
-                        DropdownMenuItem(value: 'system', child: Text(l10n.systemDefault)),
-                        DropdownMenuItem(value: 'en', child: Text(l10n.englishLanguage)),
-                        DropdownMenuItem(value: 'id', child: Text(l10n.indonesianLanguage)),
-                      ],
-                    ),
-                  ),
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(l10n.budgetNotificationsLabel),
-                    trailing: Switch(
-                      value: state.notificationsEnabled,
-                      onChanged: (value) => cubit.setNotificationsEnabled(value),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  FilledButton.icon(
-                    onPressed: state.backupInProgress
-                        ? null
-                        : () async {
-                            await HapticFeedback.mediumImpact();
-                            await cubit.backupNow();
-                          },
-                    icon: const Icon(Icons.cloud_upload),
-                    label: Text(l10n.backupNow),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    state.lastBackupAt == null
-                        ? l10n.noBackupHistory
-                        : l10n.lastBackupLabel(
-                            DateFormat.yMd(localeTag).add_Hm().format(state.lastBackupAt!.toLocal()),
-                          ),
-                  ),
-                  const SizedBox(height: 8),
-                  OutlinedButton.icon(
-                    onPressed: state.backupInProgress
-                        ? null
-                        : () async {
-                            await HapticFeedback.selectionClick();
-                            await cubit.loadRestorePreview();
-                          },
-                    icon: const Icon(Icons.restore),
-                    label: Text(l10n.restorePreview),
-                  ),
-                  const SizedBox(height: 8),
-                  OutlinedButton.icon(
-                    onPressed: state.backupInProgress
-                        ? null
-                        : () async {
-                            await HapticFeedback.selectionClick();
-                            await cubit.scheduleAutoBackupValidation();
-                          },
-                    icon: const Icon(Icons.schedule_send_outlined),
-                    label: Text(l10n.validateAutoBackupLabel),
-                  ),
-                  const SizedBox(height: 8),
-                  _AutoBackupStatus(state: state),
-                  const SizedBox(height: 8),
-                  OutlinedButton.icon(
-                    onPressed: state.backupInProgress ? null : () => _confirmResetLocalData(context),
-                    icon: const Icon(Icons.delete_sweep_outlined),
-                    label: Text(l10n.resetLocalDataLabel),
-                  ),
-                  const SizedBox(height: 16),
-                  Card(
-                    child: ListTile(
-                      leading: const Icon(Icons.info_outline),
-                      title: Text(l10n.appInfoTitle),
-                      subtitle: Text('${l10n.appVersionLabel}: ${AppConstants.appVersion}'),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Lottie.asset(LottiePlaceholders.backupAnimation, height: 140),
-                  const SizedBox(height: 16),
-                  FilledButton.tonalIcon(
-                    onPressed: () => _confirmSignOut(context),
-                    icon: const Icon(Icons.logout),
-                    label: Text(l10n.signOutLabel),
-                  ),
-                  const SizedBox(height: 12),
-                  if (state.restorePreview.isEmpty)
-                    Text(l10n.noBackupFiles)
-                  else
-                    ...state.restorePreview.map((file) {
-                      final createdAt = file.createdAt == null
-                          ? '-'
-                          : DateFormat.yMMMd(localeTag).add_Hm().format(file.createdAt!.toLocal());
-                      final fileSize = file.size.toReadableBytes();
-                      return Card(
-                        child: ListTile(
-                          title: Text(file.name),
-                          subtitle: Text('$createdAt • $fileSize'),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.download),
-                            tooltip: l10n.restoreActionLabel,
-                            onPressed: () => _confirmRestore(context, file.id),
+                return TweenAnimationBuilder<double>(
+                  duration: const Duration(milliseconds: 420),
+                  tween: Tween<double>(begin: 8, end: 0),
+                  curve: Curves.easeOutCubic,
+                  builder: (context, offset, child) {
+                    return Transform.translate(
+                        offset: Offset(0, offset), child: child);
+                  },
+                  child: ListView(
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      if (state.backupInProgress) ...[
+                        Semantics(
+                          label: l10n.operationInProgress,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const LinearProgressIndicator(),
+                              const SizedBox(height: 8),
+                              Text(
+                                l10n.operationInProgress,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
                           ),
                         ),
-                      );
-                    }),
-                ],
-              );
-            },
+                        const SizedBox(height: 12),
+                      ],
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            children: [
+                              ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                title: Text(l10n.darkMode),
+                                trailing: Switch(
+                                  value: state.themeMode == ThemeMode.dark,
+                                  onChanged: (value) => cubit.setThemeMode(
+                                      value ? ThemeMode.dark : ThemeMode.light),
+                                ),
+                              ),
+                              Divider(
+                                  color: Theme.of(context)
+                                      .dividerColor
+                                      .withOpacity(0.16),
+                                  height: 1),
+                              ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                title: Text(l10n.languageLabel),
+                                trailing: DropdownButton<String>(
+                                  isDense: true,
+                                  value: state.locale?.languageCode ?? 'system',
+                                  onChanged: (value) {
+                                    if (value == null || value == 'system') {
+                                      cubit.setLocale(null);
+                                      return;
+                                    }
+                                    cubit.setLocale(Locale(value));
+                                  },
+                                  items: [
+                                    DropdownMenuItem(
+                                        value: 'system',
+                                        child: Text(l10n.systemDefault)),
+                                    DropdownMenuItem(
+                                        value: 'en',
+                                        child: Text(l10n.englishLanguage)),
+                                    DropdownMenuItem(
+                                        value: 'id',
+                                        child: Text(l10n.indonesianLanguage)),
+                                  ],
+                                ),
+                              ),
+                              Divider(
+                                  color: Theme.of(context)
+                                      .dividerColor
+                                      .withOpacity(0.16),
+                                  height: 1),
+                              ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                title: Text(l10n.budgetNotificationsLabel),
+                                trailing: Switch(
+                                  value: state.notificationsEnabled,
+                                  onChanged: (value) =>
+                                      cubit.setNotificationsEnabled(value),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      FilledButton.icon(
+                        onPressed: state.backupInProgress
+                            ? null
+                            : () async {
+                                await HapticFeedback.mediumImpact();
+                                await cubit.backupNow();
+                              },
+                        icon: const Icon(Icons.cloud_upload),
+                        label: Text(l10n.backupNow),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        state.lastBackupAt == null
+                            ? l10n.noBackupHistory
+                            : l10n.lastBackupLabel(
+                                DateFormat.yMd(localeTag)
+                                    .add_Hm()
+                                    .format(state.lastBackupAt!.toLocal()),
+                              ),
+                      ),
+                      const SizedBox(height: 8),
+                      OutlinedButton.icon(
+                        onPressed: state.backupInProgress
+                            ? null
+                            : () async {
+                                await HapticFeedback.selectionClick();
+                                await cubit.loadRestorePreview();
+                              },
+                        icon: const Icon(Icons.restore),
+                        label: Text(l10n.restorePreview),
+                      ),
+                      const SizedBox(height: 8),
+                      OutlinedButton.icon(
+                        onPressed: state.backupInProgress
+                            ? null
+                            : () async {
+                                await HapticFeedback.selectionClick();
+                                await cubit.scheduleAutoBackupValidation();
+                              },
+                        icon: const Icon(Icons.schedule_send_outlined),
+                        label: Text(l10n.validateAutoBackupLabel),
+                      ),
+                      const SizedBox(height: 8),
+                      _AutoBackupStatus(state: state),
+                      const SizedBox(height: 8),
+                      OutlinedButton.icon(
+                        onPressed: state.backupInProgress
+                            ? null
+                            : () => _confirmResetLocalData(context),
+                        icon: const Icon(Icons.delete_sweep_outlined),
+                        label: Text(l10n.resetLocalDataLabel),
+                      ),
+                      const SizedBox(height: 16),
+                      Card(
+                        child: ListTile(
+                          leading: const Icon(Icons.info_outline),
+                          title: Text(l10n.appInfoTitle),
+                          subtitle: Text(
+                              '${l10n.appVersionLabel}: ${AppConstants.appVersion}'),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Lottie.asset(LottiePlaceholders.backupAnimation,
+                          height: 140),
+                      const SizedBox(height: 16),
+                      FilledButton.tonalIcon(
+                        onPressed: () => _confirmSignOut(context),
+                        icon: const Icon(Icons.logout),
+                        label: Text(l10n.signOutLabel),
+                      ),
+                      const SizedBox(height: 12),
+                      if (state.restorePreview.isEmpty)
+                        Text(l10n.noBackupFiles)
+                      else
+                        ...state.restorePreview.map((file) {
+                          final createdAt = file.createdAt == null
+                              ? '-'
+                              : DateFormat.yMMMd(localeTag)
+                                  .add_Hm()
+                                  .format(file.createdAt!.toLocal());
+                          final fileSize = file.size.toReadableBytes();
+                          return Card(
+                            child: ListTile(
+                              title: Text(file.name),
+                              subtitle: Text('$createdAt • $fileSize'),
+                              trailing: IconButton(
+                                icon: const Icon(Icons.download),
+                                tooltip: l10n.restoreActionLabel,
+                                onPressed: () =>
+                                    _confirmRestore(context, file.id),
+                              ),
+                            ),
+                          );
+                        }),
+                    ],
+                  ),
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -289,7 +341,8 @@ class SettingsPage extends StatelessWidget {
     if (approved == true && context.mounted) {
       await context.read<AuthCubit>().signOut();
       if (context.mounted) {
-        Navigator.pushNamedAndRemoveUntil(context, AppRoutes.root, (_) => false);
+        Navigator.pushNamedAndRemoveUntil(
+            context, AppRoutes.root, (_) => false);
       }
     }
   }
@@ -335,7 +388,6 @@ class SettingsPage extends StatelessWidget {
     }
     await context.read<DashboardCubit>().loadOverview();
   }
-
 }
 
 class _AutoBackupStatus extends StatelessWidget {
@@ -350,12 +402,16 @@ class _AutoBackupStatus extends StatelessWidget {
     final attempt = state.autoBackupLastAttemptAt == null
         ? l10n.autoBackupNeverRun
         : l10n.autoBackupLastAttempt(
-            DateFormat.yMd(localeTag).add_Hm().format(state.autoBackupLastAttemptAt!.toLocal()),
+            DateFormat.yMd(localeTag)
+                .add_Hm()
+                .format(state.autoBackupLastAttemptAt!.toLocal()),
           );
     final success = state.autoBackupLastSuccessAt == null
         ? l10n.autoBackupNoSuccessYet
         : l10n.autoBackupLastSuccess(
-            DateFormat.yMd(localeTag).add_Hm().format(state.autoBackupLastSuccessAt!.toLocal()),
+            DateFormat.yMd(localeTag)
+                .add_Hm()
+                .format(state.autoBackupLastSuccessAt!.toLocal()),
           );
     final error = state.autoBackupLastError;
 
@@ -370,11 +426,16 @@ class _AutoBackupStatus extends StatelessWidget {
                 Expanded(
                   child: Text(
                     l10n.autoBackupStatusTitle,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleSmall
+                        ?.copyWith(fontWeight: FontWeight.w700),
                   ),
                 ),
                 IconButton(
-                  onPressed: () => context.read<SettingsCubit>().refreshAutoBackupTelemetry(),
+                  onPressed: () => context
+                      .read<SettingsCubit>()
+                      .refreshAutoBackupTelemetry(),
                   tooltip: l10n.refreshLabel,
                   icon: const Icon(Icons.refresh),
                 ),
