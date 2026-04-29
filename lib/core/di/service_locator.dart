@@ -44,7 +44,7 @@ class ServiceLocator {
     sl.registerLazySingleton(() => SecureKeyService(sl()));
     sl.registerLazySingleton(() => DbMigrationService());
     sl.registerLazySingleton(() => LocalDatabaseDataSource(sl(), sl()));
-    sl.registerLazySingleton(() => DriftQueryService());
+    sl.registerLazySingleton(() => DriftQueryService(sl()));
     sl.registerLazySingleton(() => FlutterLocalNotificationsPlugin());
     sl.registerLazySingleton(() => BudgetNotificationService(sl()));
     sl.registerLazySingleton<AutoBackupValidationScheduler>(

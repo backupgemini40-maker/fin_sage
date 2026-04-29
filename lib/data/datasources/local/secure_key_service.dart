@@ -9,16 +9,27 @@ class SecureKeyService {
 
   final FlutterSecureStorage _storage;
 
-  Future<String> getOrCreateDbKey() async {
+  Future<String?> readDbKey() async {
     final existing = await _storage.read(key: AppConstants.dbEncryptionKey);
-    if (existing != null && existing.isNotEmpty) {
-      return existing;
+    if (existing == null || existing.isEmpty) {
+      return null;
     }
+    return existing;
+  }
 
+  Future<String> createDbKey() async {
     final random = Random.secure();
     final values = List<int>.generate(32, (_) => random.nextInt(256));
     final key = base64UrlEncode(values);
     await _storage.write(key: AppConstants.dbEncryptionKey, value: key);
     return key;
+  }
+
+  Future<String> getOrCreateDbKey() async {
+    final existing = await readDbKey();
+    if (existing != null) {
+      return existing;
+    }
+    return createDbKey();
   }
 }

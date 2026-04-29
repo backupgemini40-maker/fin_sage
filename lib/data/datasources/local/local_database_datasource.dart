@@ -23,18 +23,36 @@ class LocalDatabaseDataSource {
       return _db!;
     }
 
-    final key = await _secureKeyService.getOrCreateDbKey();
     final folder = await getDatabasesPath();
+    await Directory(folder).create(recursive: true);
     final dbPath = p.join(folder, AppConstants.dbName);
+    final dbFile = File(dbPath);
+    final dbExists = await dbFile.exists();
 
-    _db = await openDatabase(
-      dbPath,
-      password: key,
-      version: DbMigrationService.schemaVersion,
-      onCreate: (db, version) async => _migrationService.createLatestSchema(db),
-      onUpgrade: (db, oldVersion, newVersion) async =>
-          _migrationService.upgrade(db, oldVersion, newVersion),
-    );
+    var key = await _secureKeyService.readDbKey();
+    if ((key == null || key.isEmpty) && dbExists) {
+      throw const AppException(
+        'Encrypted database key is unavailable for this process. Open the app in foreground and retry.',
+        code: AppErrorCodes.unexpectedError,
+      );
+    }
+    key ??= await _secureKeyService.createDbKey();
+
+    try {
+      _db = await openDatabase(
+        dbPath,
+        password: key,
+        version: DbMigrationService.schemaVersion,
+        onCreate: (db, version) async => _migrationService.createLatestSchema(db),
+        onUpgrade: (db, oldVersion, newVersion) async =>
+            _migrationService.upgrade(db, oldVersion, newVersion),
+      );
+    } on DatabaseException catch (e) {
+      throw AppException(
+        'Failed to open encrypted local database: ${e.toString()}',
+        code: AppErrorCodes.unexpectedError,
+      );
+    }
 
     return _db!;
   }
@@ -181,5 +199,25 @@ class LocalDatabaseDataSource {
         'is_archived': 0,
       });
     });
+  }
+
+  Future<Map<String, double>> monthlySummary() async {
+    final db = await _database();
+    final rows = await db.rawQuery('''
+      SELECT
+        SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) AS income,
+        SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) AS expense
+      FROM transactions
+      WHERE substr(date, 1, 7) = substr(date('now'), 1, 7)
+    ''');
+
+    if (rows.isEmpty) {
+      return {'income': 0, 'expense': 0};
+    }
+
+    final row = rows.first;
+    final income = (row['income'] as num?)?.toDouble() ?? 0;
+    final expense = (row['expense'] as num?)?.toDouble() ?? 0;
+    return {'income': income, 'expense': expense};
   }
 }
