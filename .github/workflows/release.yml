@@ -313,6 +313,49 @@ jobs:
           storeFile=fin_sage.keystore
           EOT
 
+      - name: Configure Android release signing
+        run: |
+          if [ -f android/app/build.gradle ]; then
+            if ! grep -q "keystorePropertiesFile" android/app/build.gradle; then
+              cat <<'EOT' | cat - android/app/build.gradle > /tmp/app_build_gradle && mv /tmp/app_build_gradle android/app/build.gradle
+              def keystoreProperties = new Properties()
+              def keystorePropertiesFile = rootProject.file("key.properties")
+              if (keystorePropertiesFile.exists()) {
+                  keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+              }
+              EOT
+            fi
+
+            if ! grep -q "signingConfigs[[:space:]]*{" android/app/build.gradle; then
+              sed -i '/android[[:space:]]*{/a\    signingConfigs {\n        release {\n            keyAlias keystoreProperties["keyAlias"]\n            keyPassword keystoreProperties["keyPassword"]\n            storeFile keystoreProperties["storeFile"] ? file(keystoreProperties["storeFile"]) : null\n            storePassword keystoreProperties["storePassword"]\n        }\n    }' android/app/build.gradle
+            fi
+
+            sed -i 's/signingConfig signingConfigs.debug/signingConfig signingConfigs.release/g' android/app/build.gradle
+            sed -i 's/signingConfig = signingConfigs.debug/signingConfig = signingConfigs.release/g' android/app/build.gradle
+          fi
+
+          if [ -f android/app/build.gradle.kts ]; then
+            if ! grep -q "keystorePropertiesFile" android/app/build.gradle.kts; then
+              cat <<'EOT' | cat - android/app/build.gradle.kts > /tmp/app_build_gradle_kts && mv /tmp/app_build_gradle_kts android/app/build.gradle.kts
+              import java.util.Properties
+              import java.io.FileInputStream
+
+              val keystoreProperties = Properties()
+              val keystorePropertiesFile = rootProject.file("key.properties")
+              if (keystorePropertiesFile.exists()) {
+                  keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+              }
+              EOT
+            fi
+
+            if ! grep -q "signingConfigs" android/app/build.gradle.kts; then
+              sed -i '/android[[:space:]]*{/a\    signingConfigs {\n        create("release") {\n            keyAlias = keystoreProperties["keyAlias"] as String?\n            keyPassword = keystoreProperties["keyPassword"] as String?\n            storeFile = (keystoreProperties["storeFile"] as String?)?.let { file(it) }\n            storePassword = keystoreProperties["storePassword"] as String?\n        }\n    }' android/app/build.gradle.kts
+            fi
+
+            sed -i 's/signingConfig = signingConfigs.getByName("debug")/signingConfig = signingConfigs.getByName("release")/g' android/app/build.gradle.kts
+            sed -i 's/signingConfig = signingConfigs.debug/signingConfig = signingConfigs.getByName("release")/g' android/app/build.gradle.kts
+          fi
+
       - name: Print signing certificate fingerprints
         run: |
           keytool -list -v \
@@ -510,6 +553,15 @@ jobs:
             --dart-define=ANDROID_APPLICATION_ID="$ANDROID_APP_ID" \
             --dart-define=GOOGLE_CLIENT_ID="$GOOGLE_CLIENT_ID" \
             --dart-define=GOOGLE_SERVER_CLIENT_ID="$GOOGLE_SERVER_CLIENT_ID"
+
+      - name: Assert APK is not debug-signed
+        run: |
+          cert_dump="$(keytool -printcert -jarfile build/app/outputs/flutter-apk/app-release.apk)"
+          echo "$cert_dump" | sed -n '1,40p'
+          if echo "$cert_dump" | grep -q "CN=Android Debug"; then
+            echo "APK is still signed with Android Debug certificate. Release signing is not applied."
+            exit 1
+          fi
 
       - name: Verify signed APK
         run: |
