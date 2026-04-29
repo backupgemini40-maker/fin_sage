@@ -5,7 +5,9 @@ import 'package:fin_sage/core/utils/validators.dart';
 import 'package:fin_sage/core/constants/app_routes.dart';
 import 'package:fin_sage/core/widgets/app_bottom_nav.dart';
 import 'package:fin_sage/core/widgets/atmospheric_scaffold_body.dart';
+import 'package:fin_sage/core/widgets/empty_state_panel.dart';
 import 'package:fin_sage/core/widgets/loading_skeleton.dart';
+import 'package:fin_sage/core/widgets/section_reveal.dart';
 import 'package:fin_sage/core/constants/lottie_placeholders.dart';
 import 'package:fin_sage/data/models/budget_model.dart';
 import 'package:fin_sage/l10n/generated/app_localizations.dart';
@@ -71,18 +73,22 @@ class _BudgetsPageState extends State<BudgetsPage> {
                 }
 
                 if (state.items.isEmpty) {
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Lottie.asset(LottiePlaceholders.emptyStateAnimation,
-                              height: 140),
-                          const SizedBox(height: 12),
-                          Text(l10n.noBudgetYet, textAlign: TextAlign.center),
-                        ],
-                      ),
+                  return Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Lottie.asset(
+                          LottiePlaceholders.emptyStateAnimation,
+                          height: 130,
+                        ),
+                        const SizedBox(height: 8),
+                        EmptyStatePanel(
+                          title: l10n.noBudgetYet,
+                          subtitle: l10n.budgetsTitle,
+                          icon: Icons.pie_chart_outline,
+                        ),
+                      ],
                     ),
                   );
                 }
@@ -106,63 +112,72 @@ class _BudgetsPageState extends State<BudgetsPage> {
                       final categoryLabel = categoryMap[budget.categoryId] ??
                           '#${budget.categoryId}';
 
-                      return Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      monthLabel,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium,
+                      return SectionReveal(
+                        delay: Duration(
+                          milliseconds: (index * 35).clamp(0, 210).toInt(),
+                        ),
+                        child: Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        monthLabel,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium,
+                                      ),
                                     ),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.edit_outlined),
-                                    tooltip: l10n.updateActionLabel,
-                                    onPressed: () => _showBudgetForm(context,
-                                        existing: budget),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.delete_outline),
-                                    tooltip: l10n.deleteActionLabel,
-                                    onPressed: budget.id == null
-                                        ? null
-                                        : () => _confirmDeleteBudget(
-                                            context, budget.id!),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Text('${l10n.categoryLabel}: $categoryLabel'),
-                              const SizedBox(height: 10),
-                              LinearProgressIndicator(
-                                value: progress,
-                                color: isExceeded
-                                    ? Theme.of(context).colorScheme.error
-                                    : Colors.green.shade700,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                '${(ratio * 100).toStringAsFixed(0)}%',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  color: isExceeded
-                                      ? Theme.of(context).colorScheme.error
-                                      : null,
+                                    IconButton(
+                                      icon: const Icon(Icons.edit_outlined),
+                                      tooltip: l10n.updateActionLabel,
+                                      onPressed: () => _showBudgetForm(context,
+                                          existing: budget),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.delete_outline),
+                                      tooltip: l10n.deleteActionLabel,
+                                      onPressed: budget.id == null
+                                          ? null
+                                          : () => _confirmDeleteBudget(
+                                              context, budget.id!),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                  '${l10n.usedLabel}: ${budget.usedAmount.toCurrency(locale)}'),
-                              Text(
-                                  '${l10n.limitLabel}: ${budget.limitAmount.toCurrency(locale)}'),
-                            ],
+                                const SizedBox(height: 4),
+                                Text('${l10n.categoryLabel}: $categoryLabel'),
+                                const SizedBox(height: 10),
+                                Semantics(
+                                  label:
+                                      '${l10n.categoryLabel}: $categoryLabel. ${(ratio * 100).toStringAsFixed(0)} percent.',
+                                  child: LinearProgressIndicator(
+                                    value: progress,
+                                    color: isExceeded
+                                        ? Theme.of(context).colorScheme.error
+                                        : Colors.green.shade700,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  '${(ratio * 100).toStringAsFixed(0)}%',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    color: isExceeded
+                                        ? Theme.of(context).colorScheme.error
+                                        : null,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                    '${l10n.usedLabel}: ${budget.usedAmount.toCurrency(locale)}'),
+                                Text(
+                                    '${l10n.limitLabel}: ${budget.limitAmount.toCurrency(locale)}'),
+                              ],
+                            ),
                           ),
                         ),
                       );

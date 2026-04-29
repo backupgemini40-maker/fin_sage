@@ -6,7 +6,9 @@ import 'package:fin_sage/core/constants/app_routes.dart';
 import 'package:fin_sage/core/utils/extensions.dart';
 import 'package:fin_sage/core/widgets/app_bottom_nav.dart';
 import 'package:fin_sage/core/widgets/atmospheric_scaffold_body.dart';
+import 'package:fin_sage/core/widgets/empty_state_panel.dart';
 import 'package:fin_sage/core/widgets/loading_skeleton.dart';
+import 'package:fin_sage/core/widgets/section_reveal.dart';
 import 'package:fin_sage/features/reports/report_generator.dart';
 import 'package:fin_sage/data/models/transaction_model.dart';
 import 'package:fin_sage/l10n/generated/app_localizations.dart';
@@ -133,29 +135,42 @@ class _ReportsPageState extends State<ReportsPage> {
                             ],
                           ),
                           const SizedBox(height: 12),
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(l10n
-                                      .transactionCount(filteredTxs.length)),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                      '${l10n.monthlyIncome}: ${income.toCurrency(localeTag)}'),
-                                  Text(
-                                      '${l10n.monthlyExpense}: ${expense.toCurrency(localeTag)}'),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    '${l10n.netBalance}: ${balance.toCurrency(localeTag)}',
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.w700),
-                                  ),
-                                ],
+                          SectionReveal(
+                            child: Card(
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(l10n
+                                        .transactionCount(filteredTxs.length)),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                        '${l10n.monthlyIncome}: ${income.toCurrency(localeTag)}'),
+                                    Text(
+                                        '${l10n.monthlyExpense}: ${expense.toCurrency(localeTag)}'),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      '${l10n.netBalance}: ${balance.toCurrency(localeTag)}',
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.w700),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
+                          if (filteredTxs.isEmpty) ...[
+                            const SizedBox(height: 12),
+                            EmptyStatePanel(
+                              title: l10n.noDataToExport,
+                              subtitle: l10n.selectedMonthLabel(
+                                DateFormat.yMMMM(localeTag)
+                                    .format(_selectedMonth),
+                              ),
+                              icon: Icons.insert_chart_outlined,
+                            ),
+                          ],
                           const SizedBox(height: 12),
                           FilledButton.icon(
                             onPressed: state.loading

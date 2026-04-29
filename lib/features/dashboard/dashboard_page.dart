@@ -11,8 +11,10 @@ import 'package:fin_sage/core/utils/extensions.dart';
 import 'package:fin_sage/core/widgets/animated_balance_chart.dart';
 import 'package:fin_sage/core/widgets/atmospheric_scaffold_body.dart';
 import 'package:fin_sage/core/widgets/app_bottom_nav.dart';
+import 'package:fin_sage/core/widgets/empty_state_panel.dart';
 import 'package:fin_sage/core/widgets/loading_skeleton.dart';
 import 'package:fin_sage/core/widgets/premium_card.dart';
+import 'package:fin_sage/core/widgets/section_reveal.dart';
 import 'package:fin_sage/data/models/transaction_model.dart';
 import 'package:fin_sage/l10n/generated/app_localizations.dart';
 import 'package:fin_sage/logic/budgets/budget_cubit.dart';
@@ -94,36 +96,39 @@ class DashboardPage extends StatelessWidget {
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.all(16),
                         children: [
-                          PremiumCard(
-                            child: Semantics(
-                              container: true,
-                              label:
-                                  '${l10n.totalBalance}: ${state.balance.toCurrency(locale)}. ${l10n.monthlyIncome}: ${state.income.toCurrency(locale)}. ${l10n.monthlyExpense}: ${state.expense.toCurrency(locale)}.',
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(l10n.totalBalance),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    state.balance.toCurrency(locale),
-                                    textScaler:
-                                        MediaQuery.textScalerOf(context),
-                                    style: Theme.of(
-                                      context,
-                                    )
-                                        .textTheme
-                                        .headlineMedium
-                                        ?.copyWith(color: Colors.white),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                      '${l10n.monthlyIncome}: ${state.income.toCurrency(locale)}'),
-                                  Text(
-                                      '${l10n.monthlyExpense}: ${state.expense.toCurrency(locale)}'),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                      '${l10n.monthlyTransactions}: ${state.monthlyTransactionCount}'),
-                                ],
+                          SectionReveal(
+                            child: PremiumCard(
+                              child: Semantics(
+                                container: true,
+                                label:
+                                    '${l10n.totalBalance}: ${state.balance.toCurrency(locale)}. ${l10n.monthlyIncome}: ${state.income.toCurrency(locale)}. ${l10n.monthlyExpense}: ${state.expense.toCurrency(locale)}.',
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(l10n.totalBalance),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      state.balance.toCurrency(locale),
+                                      textScaler:
+                                          MediaQuery.textScalerOf(context),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .headlineMedium
+                                          ?.copyWith(color: Colors.white),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      '${l10n.monthlyIncome}: ${state.income.toCurrency(locale)}',
+                                    ),
+                                    Text(
+                                      '${l10n.monthlyExpense}: ${state.expense.toCurrency(locale)}',
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      '${l10n.monthlyTransactions}: ${state.monthlyTransactionCount}',
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -192,7 +197,11 @@ class DashboardPage extends StatelessWidget {
                               style: Theme.of(context).textTheme.titleMedium),
                           const SizedBox(height: 10),
                           if (state.recentTransactions.isEmpty)
-                            Text(l10n.emptyTransactions)
+                            EmptyStatePanel(
+                              title: l10n.emptyTransactions,
+                              subtitle: l10n.transactionsTitle,
+                              icon: Icons.receipt_long_outlined,
+                            )
                           else
                             ...state.recentTransactions.map(
                               (tx) => _RecentTransactionTile(

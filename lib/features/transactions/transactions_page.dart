@@ -5,7 +5,9 @@ import 'package:fin_sage/core/utils/validators.dart';
 import 'package:fin_sage/core/constants/app_routes.dart';
 import 'package:fin_sage/core/widgets/app_bottom_nav.dart';
 import 'package:fin_sage/core/widgets/atmospheric_scaffold_body.dart';
+import 'package:fin_sage/core/widgets/empty_state_panel.dart';
 import 'package:fin_sage/core/widgets/loading_skeleton.dart';
+import 'package:fin_sage/core/widgets/section_reveal.dart';
 import 'package:fin_sage/data/models/category_model.dart';
 import 'package:fin_sage/data/models/transaction_model.dart';
 import 'package:fin_sage/l10n/generated/app_localizations.dart';
@@ -77,10 +79,13 @@ class TransactionsPage extends StatelessWidget {
                         context.read<TransactionCubit>().loadTransactions,
                     child: ListView(
                       physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.all(16),
                       children: [
-                        SizedBox(
-                          height: 320,
-                          child: Center(child: Text(l10n.emptyTransactions)),
+                        const SizedBox(height: 84),
+                        EmptyStatePanel(
+                          title: l10n.emptyTransactions,
+                          subtitle: l10n.addTransaction,
+                          icon: Icons.receipt_long_outlined,
                         ),
                       ],
                     ),
@@ -150,29 +155,37 @@ class TransactionsPage extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 12),
-                        Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(l10n.monthlyIncome),
-                                Text(
-                                  incomeTotal.toCurrency(locale),
-                                  style: TextStyle(
-                                      color: Colors.green.shade700,
-                                      fontWeight: FontWeight.w700),
+                        SectionReveal(
+                          child: Semantics(
+                            container: true,
+                            label:
+                                '${l10n.monthlyIncome}: ${incomeTotal.toCurrency(locale)}. ${l10n.monthlyExpense}: ${expenseTotal.toCurrency(locale)}.',
+                            child: Card(
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(l10n.monthlyIncome),
+                                    Text(
+                                      incomeTotal.toCurrency(locale),
+                                      style: TextStyle(
+                                          color: Colors.green.shade700,
+                                          fontWeight: FontWeight.w700),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(l10n.monthlyExpense),
+                                    Text(
+                                      expenseTotal.toCurrency(locale),
+                                      style: TextStyle(
+                                        color:
+                                            Theme.of(context).colorScheme.error,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(height: 8),
-                                Text(l10n.monthlyExpense),
-                                Text(
-                                  expenseTotal.toCurrency(locale),
-                                  style: TextStyle(
-                                    color: Theme.of(context).colorScheme.error,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
                           ),
                         ),
@@ -180,8 +193,11 @@ class TransactionsPage extends StatelessWidget {
                         if (filteredItems.isEmpty)
                           Padding(
                             padding: const EdgeInsets.only(top: 24),
-                            child: Center(
-                                child: Text(l10n.noMatchingTransactions)),
+                            child: EmptyStatePanel(
+                              title: l10n.noMatchingTransactions,
+                              subtitle: l10n.searchTransactions,
+                              icon: Icons.search_off_outlined,
+                            ),
                           )
                         else
                           ...filteredItems.map((tx) {

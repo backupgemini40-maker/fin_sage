@@ -8,6 +8,8 @@ import 'package:fin_sage/core/errors/error_localizer.dart';
 import 'package:fin_sage/core/utils/extensions.dart';
 import 'package:fin_sage/core/widgets/app_bottom_nav.dart';
 import 'package:fin_sage/core/widgets/atmospheric_scaffold_body.dart';
+import 'package:fin_sage/core/widgets/empty_state_panel.dart';
+import 'package:fin_sage/core/widgets/section_reveal.dart';
 import 'package:fin_sage/l10n/generated/app_localizations.dart';
 import 'package:fin_sage/logic/auth/auth_cubit.dart';
 import 'package:fin_sage/logic/budgets/budget_cubit.dart';
@@ -114,66 +116,71 @@ class SettingsPage extends StatelessWidget {
                         ),
                         const SizedBox(height: 12),
                       ],
-                      Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Column(
-                            children: [
-                              ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                title: Text(l10n.darkMode),
-                                trailing: Switch(
-                                  value: state.themeMode == ThemeMode.dark,
-                                  onChanged: (value) => cubit.setThemeMode(
-                                      value ? ThemeMode.dark : ThemeMode.light),
+                      SectionReveal(
+                        child: Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              children: [
+                                ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  title: Text(l10n.darkMode),
+                                  trailing: Switch(
+                                    value: state.themeMode == ThemeMode.dark,
+                                    onChanged: (value) => cubit.setThemeMode(
+                                        value
+                                            ? ThemeMode.dark
+                                            : ThemeMode.light),
+                                  ),
                                 ),
-                              ),
-                              Divider(
-                                  color: Theme.of(context)
-                                      .dividerColor
-                                      .withOpacity(0.16),
-                                  height: 1),
-                              ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                title: Text(l10n.languageLabel),
-                                trailing: DropdownButton<String>(
-                                  isDense: true,
-                                  value: state.locale?.languageCode ?? 'system',
-                                  onChanged: (value) {
-                                    if (value == null || value == 'system') {
-                                      cubit.setLocale(null);
-                                      return;
-                                    }
-                                    cubit.setLocale(Locale(value));
-                                  },
-                                  items: [
-                                    DropdownMenuItem(
-                                        value: 'system',
-                                        child: Text(l10n.systemDefault)),
-                                    DropdownMenuItem(
-                                        value: 'en',
-                                        child: Text(l10n.englishLanguage)),
-                                    DropdownMenuItem(
-                                        value: 'id',
-                                        child: Text(l10n.indonesianLanguage)),
-                                  ],
+                                Divider(
+                                    color: Theme.of(context)
+                                        .dividerColor
+                                        .withOpacity(0.16),
+                                    height: 1),
+                                ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  title: Text(l10n.languageLabel),
+                                  trailing: DropdownButton<String>(
+                                    isDense: true,
+                                    value:
+                                        state.locale?.languageCode ?? 'system',
+                                    onChanged: (value) {
+                                      if (value == null || value == 'system') {
+                                        cubit.setLocale(null);
+                                        return;
+                                      }
+                                      cubit.setLocale(Locale(value));
+                                    },
+                                    items: [
+                                      DropdownMenuItem(
+                                          value: 'system',
+                                          child: Text(l10n.systemDefault)),
+                                      DropdownMenuItem(
+                                          value: 'en',
+                                          child: Text(l10n.englishLanguage)),
+                                      DropdownMenuItem(
+                                          value: 'id',
+                                          child: Text(l10n.indonesianLanguage)),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              Divider(
-                                  color: Theme.of(context)
-                                      .dividerColor
-                                      .withOpacity(0.16),
-                                  height: 1),
-                              ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                title: Text(l10n.budgetNotificationsLabel),
-                                trailing: Switch(
-                                  value: state.notificationsEnabled,
-                                  onChanged: (value) =>
-                                      cubit.setNotificationsEnabled(value),
+                                Divider(
+                                    color: Theme.of(context)
+                                        .dividerColor
+                                        .withOpacity(0.16),
+                                    height: 1),
+                                ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  title: Text(l10n.budgetNotificationsLabel),
+                                  trailing: Switch(
+                                    value: state.notificationsEnabled,
+                                    onChanged: (value) =>
+                                        cubit.setNotificationsEnabled(value),
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -250,7 +257,11 @@ class SettingsPage extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       if (state.restorePreview.isEmpty)
-                        Text(l10n.noBackupFiles)
+                        EmptyStatePanel(
+                          title: l10n.noBackupFiles,
+                          subtitle: l10n.restorePreview,
+                          icon: Icons.backup_outlined,
+                        )
                       else
                         ...state.restorePreview.map((file) {
                           final createdAt = file.createdAt == null
