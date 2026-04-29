@@ -99,10 +99,9 @@ void main() {
   );
 
   blocTest<TransactionCubit, TransactionState>(
-    'createCategory saves category and reloads items',
+    'createCategory saves category and refreshes categories only',
     build: () {
       when(() => repository.saveCategory(any())).thenAnswer((_) async {});
-      when(() => repository.fetchTransactions()).thenAnswer((_) async => transactions);
       when(() => repository.fetchCategories()).thenAnswer((_) async => categories);
       return TransactionCubit(repository);
     },
@@ -111,37 +110,33 @@ void main() {
     ),
     expect: () => [
       const TransactionState(loading: false, items: [], categories: [], error: null),
-      const TransactionState(loading: true),
-      TransactionState(loading: false, items: transactions, categories: categories),
+      TransactionState(categories: categories),
     ],
     verify: (_) => verify(() => repository.saveCategory(any())).called(1),
   );
 
   blocTest<TransactionCubit, TransactionState>(
-    'archiveCategory archives category and reloads items',
+    'archiveCategory archives category and refreshes categories only',
     build: () {
       when(() => repository.archiveCategory(2)).thenAnswer((_) async {});
-      when(() => repository.fetchTransactions()).thenAnswer((_) async => transactions);
       when(() => repository.fetchCategories()).thenAnswer((_) async => categories);
       return TransactionCubit(repository);
     },
     act: (cubit) => cubit.archiveCategory(2),
     expect: () => [
       const TransactionState(loading: false, items: [], categories: [], error: null),
-      const TransactionState(loading: true),
-      TransactionState(loading: false, items: transactions, categories: categories),
+      TransactionState(categories: categories),
     ],
     verify: (_) => verify(() => repository.archiveCategory(2)).called(1),
   );
 
   blocTest<TransactionCubit, TransactionState>(
-    'updateTransaction updates item and reloads list',
+    'updateTransaction updates item in-memory',
     build: () {
       when(() => repository.updateTransaction(any())).thenAnswer((_) async {});
-      when(() => repository.fetchTransactions()).thenAnswer((_) async => transactions);
-      when(() => repository.fetchCategories()).thenAnswer((_) async => categories);
       return TransactionCubit(repository);
     },
+    seed: () => TransactionState(items: transactions, categories: categories),
     act: (cubit) => cubit.updateTransaction(
       TransactionModel(
         id: 1,
@@ -153,10 +148,23 @@ void main() {
       ),
     ),
     expect: () => [
-      const TransactionState(loading: false, items: [], categories: [], error: null),
-      const TransactionState(loading: true),
-      TransactionState(loading: false, items: transactions, categories: categories),
+      isA<TransactionState>()
+          .having((s) => s.items.first.title, 'updated title', 'Lunch Updated')
+          .having((s) => s.categories, 'categories', categories),
     ],
     verify: (_) => verify(() => repository.updateTransaction(any())).called(1),
+  );
+
+  blocTest<TransactionCubit, TransactionState>(
+    'setSearchQuery and setFilter update ui state through cubit',
+    build: () => TransactionCubit(repository),
+    act: (cubit) {
+      cubit.setSearchQuery('lunch');
+      cubit.setFilter(TransactionFilter.expense);
+    },
+    expect: () => [
+      const TransactionState(searchQuery: 'lunch'),
+      const TransactionState(searchQuery: 'lunch', filter: TransactionFilter.expense),
+    ],
   );
 }

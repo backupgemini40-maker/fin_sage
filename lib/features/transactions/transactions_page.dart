@@ -14,24 +14,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
-enum _TransactionFilter { all, income, expense }
-
-class TransactionsPage extends StatefulWidget {
+class TransactionsPage extends StatelessWidget {
   const TransactionsPage({super.key});
-
-  @override
-  State<TransactionsPage> createState() => _TransactionsPageState();
-}
-
-class _TransactionsPageState extends State<TransactionsPage> {
-  final TextEditingController _searchController = TextEditingController();
-  _TransactionFilter _filter = _TransactionFilter.all;
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +64,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                 );
               }
 
-              final filteredItems = _applyFilters(state.items);
+              final filteredItems = state.filteredItems;
 
               if (state.items.isEmpty) {
                 return Center(child: Text(l10n.emptyTransactions));
@@ -98,32 +82,31 @@ class _TransactionsPageState extends State<TransactionsPage> {
                 padding: const EdgeInsets.all(16),
                 children: [
                   TextField(
-                    controller: _searchController,
                     decoration: InputDecoration(
                       prefixIcon: const Icon(Icons.search),
                       hintText: l10n.searchTransactions,
                     ),
-                    onChanged: (_) => setState(() {}),
+                    onChanged: context.read<TransactionCubit>().setSearchQuery,
                   ),
                   const SizedBox(height: 12),
                   Row(
                     children: [
                       _FilterChip(
                         label: l10n.allType,
-                        active: _filter == _TransactionFilter.all,
-                        onTap: () => setState(() => _filter = _TransactionFilter.all),
+                        active: state.filter == TransactionFilter.all,
+                        onTap: () => context.read<TransactionCubit>().setFilter(TransactionFilter.all),
                       ),
                       const SizedBox(width: 8),
                       _FilterChip(
                         label: l10n.incomeType,
-                        active: _filter == _TransactionFilter.income,
-                        onTap: () => setState(() => _filter = _TransactionFilter.income),
+                        active: state.filter == TransactionFilter.income,
+                        onTap: () => context.read<TransactionCubit>().setFilter(TransactionFilter.income),
                       ),
                       const SizedBox(width: 8),
                       _FilterChip(
                         label: l10n.expenseType,
-                        active: _filter == _TransactionFilter.expense,
-                        onTap: () => setState(() => _filter = _TransactionFilter.expense),
+                        active: state.filter == TransactionFilter.expense,
+                        onTap: () => context.read<TransactionCubit>().setFilter(TransactionFilter.expense),
                       ),
                     ],
                   ),
@@ -166,31 +149,35 @@ class _TransactionsPageState extends State<TransactionsPage> {
 
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 10),
-                        child: ListTile(
-                          tileColor: Theme.of(context).colorScheme.surface,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          title: Text(tx.title),
-                          subtitle: Text(
-                            '${DateFormat.yMMMd(locale).format(tx.date)} • $categoryName • ${isIncome ? l10n.incomeType : l10n.expenseType}',
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                '${isIncome ? '+' : '-'}${tx.amount.toCurrency(locale)}',
-                                style: TextStyle(color: amountColor, fontWeight: FontWeight.w700),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.edit_outlined),
-                                tooltip: l10n.updateActionLabel,
-                                onPressed: tx.id == null ? null : () => _showTransactionForm(context, existing: tx),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete_outline),
-                                tooltip: l10n.deleteActionLabel,
-                                onPressed: tx.id == null ? null : () => _confirmDelete(context, tx.id!),
-                              ),
-                            ],
+                        child: Card(
+                          child: ListTile(
+                            leading: Icon(
+                              isIncome ? Icons.south_west : Icons.north_east,
+                              color: _categoryColor(state.categories, tx.categoryId) ?? amountColor,
+                            ),
+                            title: Text(tx.title),
+                            subtitle: Text(
+                              '${DateFormat.yMMMd(locale).format(tx.date)} • $categoryName • ${isIncome ? l10n.incomeType : l10n.expenseType}',
+                            ),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  '${isIncome ? '+' : '-'}${tx.amount.toCurrency(locale)}',
+                                  style: TextStyle(color: amountColor, fontWeight: FontWeight.w700),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.edit_outlined),
+                                  tooltip: l10n.updateActionLabel,
+                                  onPressed: tx.id == null ? null : () => _showTransactionForm(context, existing: tx),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete_outline),
+                                  tooltip: l10n.deleteActionLabel,
+                                  onPressed: tx.id == null ? null : () => _confirmDelete(context, tx.id!),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       );
@@ -202,27 +189,6 @@ class _TransactionsPageState extends State<TransactionsPage> {
         ),
       ),
     );
-  }
-
-  List<TransactionModel> _applyFilters(List<TransactionModel> items) {
-    final query = _searchController.text.trim().toLowerCase();
-    return items.where((tx) {
-      final typeMatch = switch (_filter) {
-        _TransactionFilter.all => true,
-        _TransactionFilter.income => tx.type == TransactionType.income,
-        _TransactionFilter.expense => tx.type == TransactionType.expense,
-      };
-
-      if (!typeMatch) {
-        return false;
-      }
-
-      if (query.isEmpty) {
-        return true;
-      }
-
-      return tx.title.toLowerCase().contains(query);
-    }).toList();
   }
 
   Future<void> _confirmDelete(BuildContext context, int id) async {
@@ -618,6 +584,27 @@ class _TransactionsPageState extends State<TransactionsPage> {
       }
     }
     return '#$id';
+  }
+
+  Color? _categoryColor(List<CategoryModel> categories, int id) {
+    for (final category in categories) {
+      if (category.id == id) {
+        return _safeParseColor(category.colorHex);
+      }
+    }
+    return null;
+  }
+
+  Color? _safeParseColor(String hex) {
+    final normalized = hex.trim().replaceFirst('#', '');
+    if (normalized.length != 6) {
+      return null;
+    }
+    final value = int.tryParse(normalized, radix: 16);
+    if (value == null) {
+      return null;
+    }
+    return Color(0xFF000000 | value);
   }
 }
 
