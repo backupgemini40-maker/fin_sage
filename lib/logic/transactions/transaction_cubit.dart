@@ -61,7 +61,8 @@ class TransactionState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [loading, items, categories, searchQuery, filter, error];
+  List<Object?> get props =>
+      [loading, items, categories, searchQuery, filter, error];
 }
 
 class TransactionCubit extends Cubit<TransactionState> {
@@ -103,16 +104,8 @@ class TransactionCubit extends Cubit<TransactionState> {
     emit(state.copyWith(error: null));
     try {
       await _repo.updateTransaction(model);
-      if (model.id == null) {
-        final items = await _repo.fetchTransactions();
-        emit(state.copyWith(items: items));
-        return;
-      }
-
-      final updated = state.items
-          .map((tx) => tx.id == model.id ? model : tx)
-          .toList(growable: false);
-      emit(state.copyWith(items: updated));
+      final items = await _repo.fetchTransactions();
+      emit(state.copyWith(items: items));
     } catch (e) {
       emit(state.copyWith(error: mapErrorMessage(e)));
     }
@@ -122,7 +115,8 @@ class TransactionCubit extends Cubit<TransactionState> {
     emit(state.copyWith(error: null));
     try {
       await _repo.deleteTransaction(id);
-      final updated = state.items.where((tx) => tx.id != id).toList(growable: false);
+      final updated =
+          state.items.where((tx) => tx.id != id).toList(growable: false);
       emit(state.copyWith(items: updated));
     } catch (e) {
       emit(state.copyWith(error: mapErrorMessage(e)));

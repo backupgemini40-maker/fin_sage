@@ -15,7 +15,8 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(
-      const CategoryModel(id: null, name: 'Fallback', colorHex: '#0D3B66', icon: 'wallet'),
+      const CategoryModel(
+          id: null, name: 'Fallback', colorHex: '#0D3B66', icon: 'wallet'),
     );
     registerFallbackValue(
       TransactionModel(
@@ -51,28 +52,34 @@ void main() {
   blocTest<TransactionCubit, TransactionState>(
     'loadTransactions emits loading then populated state',
     build: () {
-      when(() => repository.fetchTransactions()).thenAnswer((_) async => transactions);
-      when(() => repository.fetchCategories()).thenAnswer((_) async => categories);
+      when(() => repository.fetchTransactions())
+          .thenAnswer((_) async => transactions);
+      when(() => repository.fetchCategories())
+          .thenAnswer((_) async => categories);
       return TransactionCubit(repository);
     },
     act: (cubit) => cubit.loadTransactions(),
     expect: () => [
       const TransactionState(loading: true),
-      TransactionState(loading: false, items: transactions, categories: categories),
+      TransactionState(
+          loading: false, items: transactions, categories: categories),
     ],
   );
 
   blocTest<TransactionCubit, TransactionState>(
     'loadTransactions emits error when repository throws',
     build: () {
-      when(() => repository.fetchTransactions()).thenThrow(Exception('db failure'));
-      when(() => repository.fetchCategories()).thenAnswer((_) async => categories);
+      when(() => repository.fetchTransactions())
+          .thenThrow(Exception('db failure'));
+      when(() => repository.fetchCategories())
+          .thenAnswer((_) async => categories);
       return TransactionCubit(repository);
     },
     act: (cubit) => cubit.loadTransactions(),
     expect: () => [
       const TransactionState(loading: true),
-      isA<TransactionState>().having((s) => s.error, 'error', contains('db failure')),
+      isA<TransactionState>()
+          .having((s) => s.error, 'error', contains('db failure')),
     ],
   );
 
@@ -81,14 +88,17 @@ void main() {
     build: () {
       when(
         () => repository.saveCategory(any()),
-      ).thenThrow(const AppException('Category already exists', code: AppErrorCodes.categoryAlreadyExists));
+      ).thenThrow(const AppException('Category already exists',
+          code: AppErrorCodes.categoryAlreadyExists));
       return TransactionCubit(repository);
     },
     act: (cubit) => cubit.createCategory(
-      const CategoryModel(id: null, name: 'Food', colorHex: '#F4A261', icon: 'restaurant'),
+      const CategoryModel(
+          id: null, name: 'Food', colorHex: '#F4A261', icon: 'restaurant'),
     ),
     expect: () => [
-      const TransactionState(loading: false, items: [], categories: [], error: null),
+      const TransactionState(
+          loading: false, items: [], categories: [], error: null),
       const TransactionState(
         loading: false,
         items: [],
@@ -102,14 +112,17 @@ void main() {
     'createCategory saves category and refreshes categories only',
     build: () {
       when(() => repository.saveCategory(any())).thenAnswer((_) async {});
-      when(() => repository.fetchCategories()).thenAnswer((_) async => categories);
+      when(() => repository.fetchCategories())
+          .thenAnswer((_) async => categories);
       return TransactionCubit(repository);
     },
     act: (cubit) => cubit.createCategory(
-      const CategoryModel(id: null, name: 'Food', colorHex: '#F4A261', icon: 'restaurant'),
+      const CategoryModel(
+          id: null, name: 'Food', colorHex: '#F4A261', icon: 'restaurant'),
     ),
     expect: () => [
-      const TransactionState(loading: false, items: [], categories: [], error: null),
+      const TransactionState(
+          loading: false, items: [], categories: [], error: null),
       TransactionState(categories: categories),
     ],
     verify: (_) => verify(() => repository.saveCategory(any())).called(1),
@@ -119,21 +132,35 @@ void main() {
     'archiveCategory archives category and refreshes categories only',
     build: () {
       when(() => repository.archiveCategory(2)).thenAnswer((_) async {});
-      when(() => repository.fetchCategories()).thenAnswer((_) async => categories);
+      when(() => repository.fetchCategories())
+          .thenAnswer((_) async => categories);
       return TransactionCubit(repository);
     },
     act: (cubit) => cubit.archiveCategory(2),
     expect: () => [
-      const TransactionState(loading: false, items: [], categories: [], error: null),
+      const TransactionState(
+          loading: false, items: [], categories: [], error: null),
       TransactionState(categories: categories),
     ],
     verify: (_) => verify(() => repository.archiveCategory(2)).called(1),
   );
 
   blocTest<TransactionCubit, TransactionState>(
-    'updateTransaction updates item in-memory',
+    'updateTransaction refreshes items from repository',
     build: () {
       when(() => repository.updateTransaction(any())).thenAnswer((_) async {});
+      when(() => repository.fetchTransactions()).thenAnswer(
+        (_) async => [
+          TransactionModel(
+            id: 1,
+            title: 'Lunch Updated',
+            amount: 50000,
+            date: DateTime(2026, 4, 27),
+            categoryId: 1,
+            type: TransactionType.expense,
+          ),
+        ],
+      );
       return TransactionCubit(repository);
     },
     seed: () => TransactionState(items: transactions, categories: categories),
@@ -152,7 +179,10 @@ void main() {
           .having((s) => s.items.first.title, 'updated title', 'Lunch Updated')
           .having((s) => s.categories, 'categories', categories),
     ],
-    verify: (_) => verify(() => repository.updateTransaction(any())).called(1),
+    verify: (_) {
+      verify(() => repository.updateTransaction(any())).called(1);
+      verify(() => repository.fetchTransactions()).called(1);
+    },
   );
 
   blocTest<TransactionCubit, TransactionState>(
@@ -164,7 +194,8 @@ void main() {
     },
     expect: () => [
       const TransactionState(searchQuery: 'lunch'),
-      const TransactionState(searchQuery: 'lunch', filter: TransactionFilter.expense),
+      const TransactionState(
+          searchQuery: 'lunch', filter: TransactionFilter.expense),
     ],
   );
 }

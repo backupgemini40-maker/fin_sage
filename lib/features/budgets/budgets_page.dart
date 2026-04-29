@@ -36,7 +36,8 @@ class _BudgetsPageState extends State<BudgetsPage> {
     return ErrorBoundary(
       child: Scaffold(
         appBar: AppBar(title: Text(l10n.budgetsTitle)),
-        bottomNavigationBar: const AppBottomNav(currentRoute: AppRoutes.budgets),
+        bottomNavigationBar:
+            const AppBottomNav(currentRoute: AppRoutes.budgets),
         floatingActionButton: FloatingActionButton(
           onPressed: () => _showBudgetForm(context),
           tooltip: l10n.budgetsTitle,
@@ -73,7 +74,8 @@ class _BudgetsPageState extends State<BudgetsPage> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Lottie.asset(LottiePlaceholders.emptyStateAnimation, height: 140),
+                        Lottie.asset(LottiePlaceholders.emptyStateAnimation,
+                            height: 140),
                         const SizedBox(height: 12),
                         Text(l10n.noBudgetYet, textAlign: TextAlign.center),
                       ],
@@ -90,11 +92,15 @@ class _BudgetsPageState extends State<BudgetsPage> {
                   separatorBuilder: (_, __) => const SizedBox(height: 12),
                   itemBuilder: (context, index) {
                     final budget = state.items[index];
-                    final ratio = budget.limitAmount == 0 ? 0 : (budget.usedAmount / budget.limitAmount);
+                    final ratio = budget.limitAmount == 0
+                        ? 0
+                        : (budget.usedAmount / budget.limitAmount);
                     final progress = ratio.clamp(0, 1).toDouble();
                     final isExceeded = ratio >= 1;
-                    final monthLabel = DateFormat.yMMMM(locale).format(budget.month);
-                    final categoryLabel = categoryMap[budget.categoryId] ?? '#${budget.categoryId}';
+                    final monthLabel =
+                        DateFormat.yMMMM(locale).format(budget.month);
+                    final categoryLabel = categoryMap[budget.categoryId] ??
+                        '#${budget.categoryId}';
 
                     return Card(
                       child: Padding(
@@ -107,20 +113,23 @@ class _BudgetsPageState extends State<BudgetsPage> {
                                 Expanded(
                                   child: Text(
                                     monthLabel,
-                                    style: Theme.of(context).textTheme.titleMedium,
+                                    style:
+                                        Theme.of(context).textTheme.titleMedium,
                                   ),
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.edit_outlined),
                                   tooltip: l10n.updateActionLabel,
-                                  onPressed: () => _showBudgetForm(context, existing: budget),
+                                  onPressed: () => _showBudgetForm(context,
+                                      existing: budget),
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.delete_outline),
                                   tooltip: l10n.deleteActionLabel,
                                   onPressed: budget.id == null
                                       ? null
-                                      : () => _confirmDeleteBudget(context, budget.id!),
+                                      : () => _confirmDeleteBudget(
+                                          context, budget.id!),
                                 ),
                               ],
                             ),
@@ -129,19 +138,25 @@ class _BudgetsPageState extends State<BudgetsPage> {
                             const SizedBox(height: 10),
                             LinearProgressIndicator(
                               value: progress,
-                              color: isExceeded ? Theme.of(context).colorScheme.error : Colors.green.shade700,
+                              color: isExceeded
+                                  ? Theme.of(context).colorScheme.error
+                                  : Colors.green.shade700,
                             ),
                             const SizedBox(height: 8),
                             Text(
                               '${(ratio * 100).toStringAsFixed(0)}%',
                               style: TextStyle(
                                 fontWeight: FontWeight.w700,
-                                color: isExceeded ? Theme.of(context).colorScheme.error : null,
+                                color: isExceeded
+                                    ? Theme.of(context).colorScheme.error
+                                    : null,
                               ),
                             ),
                             const SizedBox(height: 8),
-                            Text('${l10n.usedLabel}: ${budget.usedAmount.toCurrency(locale)}'),
-                            Text('${l10n.limitLabel}: ${budget.limitAmount.toCurrency(locale)}'),
+                            Text(
+                                '${l10n.usedLabel}: ${budget.usedAmount.toCurrency(locale)}'),
+                            Text(
+                                '${l10n.limitLabel}: ${budget.limitAmount.toCurrency(locale)}'),
                           ],
                         ),
                       ),
@@ -184,19 +199,25 @@ class _BudgetsPageState extends State<BudgetsPage> {
     }
   }
 
-  Future<void> _showBudgetForm(BuildContext context, {BudgetModel? existing}) async {
+  Future<void> _showBudgetForm(BuildContext context,
+      {BudgetModel? existing}) async {
     final l10n = AppLocalizations.of(context);
+    final localeTag = Localizations.localeOf(context).toLanguageTag();
     final formKey = GlobalKey<FormState>();
-    final limitCtrl = TextEditingController(text: existing?.limitAmount.toStringAsFixed(0) ?? '');
-    final usedCtrl = TextEditingController(text: existing?.usedAmount.toStringAsFixed(0) ?? '0');
+    final limitCtrl = TextEditingController(
+        text: existing?.limitAmount.toStringAsFixed(0) ?? '');
+    final usedCtrl = TextEditingController(
+        text: existing?.usedAmount.toStringAsFixed(0) ?? '0');
     DateTime selectedMonth =
         existing?.month ?? DateTime(DateTime.now().year, DateTime.now().month);
     final categories = context.read<TransactionCubit>().state.categories;
-    final hasExistingCategory =
-        existing != null && categories.any((category) => category.id == existing.categoryId);
+    final hasExistingCategory = existing != null &&
+        categories.any((category) => category.id == existing.categoryId);
     int selectedCategoryId = hasExistingCategory
         ? existing.categoryId
-        : (categories.isNotEmpty ? (categories.first.id ?? 1) : (existing?.categoryId ?? 1));
+        : (categories.isNotEmpty
+            ? (categories.first.id ?? 1)
+            : (existing?.categoryId ?? 1));
 
     await showModalBottomSheet<void>(
       context: context,
@@ -219,7 +240,8 @@ class _BudgetsPageState extends State<BudgetsPage> {
                     if (categories.isNotEmpty)
                       DropdownButtonFormField<int>(
                         value: selectedCategoryId,
-                        decoration: InputDecoration(labelText: l10n.categoryLabel),
+                        decoration:
+                            InputDecoration(labelText: l10n.categoryLabel),
                         items: categories
                             .map(
                               (category) => DropdownMenuItem<int>(
@@ -238,19 +260,23 @@ class _BudgetsPageState extends State<BudgetsPage> {
                     TextFormField(
                       controller: limitCtrl,
                       decoration: InputDecoration(labelText: l10n.limitLabel),
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      validator: (value) => _errorFromCode(l10n, Validators.amount(value)),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      validator: (value) =>
+                          _errorFromCode(l10n, Validators.amount(value)),
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: usedCtrl,
                       decoration: InputDecoration(labelText: l10n.usedLabel),
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
                           return null;
                         }
-                        final parsed = double.tryParse(value.replaceAll(',', '.'));
+                        final parsed =
+                            double.tryParse(value.replaceAll(',', '.'));
                         if (parsed == null) {
                           return l10n.amountInvalid;
                         }
@@ -266,7 +292,8 @@ class _BudgetsPageState extends State<BudgetsPage> {
                     const SizedBox(height: 12),
                     ListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: Text(DateFormat.yMMMM().format(selectedMonth)),
+                      title: Text(
+                          DateFormat.yMMMM(localeTag).format(selectedMonth)),
                       subtitle: Text(l10n.dateLabel),
                       trailing: const Icon(Icons.calendar_today_outlined),
                       onTap: () async {
@@ -299,21 +326,33 @@ class _BudgetsPageState extends State<BudgetsPage> {
                               if (!formKey.currentState!.validate()) {
                                 return;
                               }
+                              final parsedLimit = double.tryParse(
+                                  limitCtrl.text.replaceAll(',', '.'));
+                              if (parsedLimit == null) {
+                                return;
+                              }
+                              final parsedUsed = double.tryParse(
+                                      usedCtrl.text.replaceAll(',', '.')) ??
+                                  0;
+                              final budgetCubit = context.read<BudgetCubit>();
                               await HapticFeedback.lightImpact();
-                              await context.read<BudgetCubit>().saveBudget(
-                                    BudgetModel(
-                                      id: existing?.id,
-                                      categoryId: selectedCategoryId,
-                                      month: selectedMonth,
-                                      limitAmount: double.parse(limitCtrl.text.replaceAll(',', '.')),
-                                      usedAmount: double.tryParse(usedCtrl.text.replaceAll(',', '.')) ?? 0,
-                                    ),
-                                  );
-                              if (context.mounted) {
+                              await budgetCubit.saveBudget(
+                                BudgetModel(
+                                  id: existing?.id,
+                                  categoryId: selectedCategoryId,
+                                  month: selectedMonth,
+                                  limitAmount: parsedLimit,
+                                  usedAmount: parsedUsed,
+                                ),
+                              );
+                              if (sheetContext.mounted &&
+                                  budgetCubit.state.error == null) {
                                 Navigator.pop(sheetContext);
                               }
                             },
-                            child: Text(existing == null ? l10n.saveLabel : l10n.updateActionLabel),
+                            child: Text(existing == null
+                                ? l10n.saveLabel
+                                : l10n.updateActionLabel),
                           ),
                         ),
                       ],

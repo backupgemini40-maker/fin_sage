@@ -43,7 +43,8 @@ class LocalDatabaseDataSource {
         dbPath,
         password: key,
         version: DbMigrationService.schemaVersion,
-        onCreate: (db, version) async => _migrationService.createLatestSchema(db),
+        onCreate: (db, version) async =>
+            _migrationService.createLatestSchema(db),
         onUpgrade: (db, oldVersion, newVersion) async =>
             _migrationService.upgrade(db, oldVersion, newVersion),
       );
@@ -76,7 +77,8 @@ class LocalDatabaseDataSource {
 
   Future<void> saveTransaction(TransactionModel transaction) async {
     final db = await _database();
-    await db.insert('transactions', transaction.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.insert('transactions', transaction.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<void> updateTransaction(TransactionModel transaction) async {
@@ -95,7 +97,8 @@ class LocalDatabaseDataSource {
 
   Future<void> deleteTransaction(int transactionId) async {
     final db = await _database();
-    await db.delete('transactions', where: 'id = ?', whereArgs: [transactionId]);
+    await db
+        .delete('transactions', where: 'id = ?', whereArgs: [transactionId]);
   }
 
   Future<List<CategoryModel>> getCategories() async {
@@ -125,7 +128,8 @@ class LocalDatabaseDataSource {
       );
     }
 
-    await db.insert('categories', category.toMap(), conflictAlgorithm: ConflictAlgorithm.abort);
+    await db.insert('categories', category.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.abort);
   }
 
   Future<void> archiveCategory(int categoryId) async {
@@ -165,7 +169,8 @@ class LocalDatabaseDataSource {
 
   Future<void> saveBudget(BudgetModel budget) async {
     final db = await _database();
-    await db.insert('budgets', budget.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.insert('budgets', budget.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<void> deleteBudget(int budgetId) async {
@@ -203,13 +208,16 @@ class LocalDatabaseDataSource {
 
   Future<Map<String, double>> monthlySummary() async {
     final db = await _database();
+    final now = DateTime.now();
+    final monthPrefix =
+        '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}';
     final rows = await db.rawQuery('''
       SELECT
         SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) AS income,
         SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) AS expense
       FROM transactions
-      WHERE substr(date, 1, 7) = substr(date('now'), 1, 7)
-    ''');
+      WHERE substr(date, 1, 7) = ?
+    ''', [monthPrefix]);
 
     if (rows.isEmpty) {
       return {'income': 0, 'expense': 0};

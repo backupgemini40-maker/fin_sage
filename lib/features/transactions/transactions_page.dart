@@ -69,142 +69,163 @@ class TransactionsPage extends StatelessWidget {
               final filteredItems = state.filteredItems;
 
               if (state.items.isEmpty) {
-                return Center(child: Text(l10n.emptyTransactions));
-              }
-
-              final locale = Localizations.localeOf(context).toLanguageTag();
-              final incomeTotal = filteredItems
-                  .where((tx) => tx.type == TransactionType.income)
-                  .fold<double>(0, (sum, tx) => sum + tx.amount);
-              final expenseTotal = filteredItems
-                  .where((tx) => tx.type == TransactionType.expense)
-                  .fold<double>(0, (sum, tx) => sum + tx.amount);
-
-              return ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  TextField(
-                    decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.search),
-                      hintText: l10n.searchTransactions,
-                    ),
-                    onChanged: context.read<TransactionCubit>().setSearchQuery,
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
+                return RefreshIndicator(
+                  onRefresh: context.read<TransactionCubit>().loadTransactions,
+                  child: ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
                     children: [
-                      _FilterChip(
-                        label: l10n.allType,
-                        active: state.filter == TransactionFilter.all,
-                        onTap: () => context
-                            .read<TransactionCubit>()
-                            .setFilter(TransactionFilter.all),
-                      ),
-                      const SizedBox(width: 8),
-                      _FilterChip(
-                        label: l10n.incomeType,
-                        active: state.filter == TransactionFilter.income,
-                        onTap: () => context
-                            .read<TransactionCubit>()
-                            .setFilter(TransactionFilter.income),
-                      ),
-                      const SizedBox(width: 8),
-                      _FilterChip(
-                        label: l10n.expenseType,
-                        active: state.filter == TransactionFilter.expense,
-                        onTap: () => context
-                            .read<TransactionCubit>()
-                            .setFilter(TransactionFilter.expense),
+                      SizedBox(
+                        height: 320,
+                        child: Center(child: Text(l10n.emptyTransactions)),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(l10n.monthlyIncome),
-                          Text(
-                            incomeTotal.toCurrency(locale),
-                            style: TextStyle(
-                                color: Colors.green.shade700,
-                                fontWeight: FontWeight.w700),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(l10n.monthlyExpense),
-                          Text(
-                            expenseTotal.toCurrency(locale),
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.error,
-                              fontWeight: FontWeight.w700,
+                );
+              }
+
+              final locale = Localizations.localeOf(context).toLanguageTag();
+              final now = DateTime.now();
+              final monthlyItems = state.items
+                  .where((tx) =>
+                      tx.date.year == now.year && tx.date.month == now.month)
+                  .toList(growable: false);
+              final incomeTotal = monthlyItems
+                  .where((tx) => tx.type == TransactionType.income)
+                  .fold<double>(0, (sum, tx) => sum + tx.amount);
+              final expenseTotal = monthlyItems
+                  .where((tx) => tx.type == TransactionType.expense)
+                  .fold<double>(0, (sum, tx) => sum + tx.amount);
+
+              return RefreshIndicator(
+                onRefresh: context.read<TransactionCubit>().loadTransactions,
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    TextField(
+                      decoration: InputDecoration(
+                        prefixIcon: const Icon(Icons.search),
+                        hintText: l10n.searchTransactions,
+                      ),
+                      onChanged:
+                          context.read<TransactionCubit>().setSearchQuery,
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _FilterChip(
+                          label: l10n.allType,
+                          active: state.filter == TransactionFilter.all,
+                          onTap: () => context
+                              .read<TransactionCubit>()
+                              .setFilter(TransactionFilter.all),
+                        ),
+                        _FilterChip(
+                          label: l10n.incomeType,
+                          active: state.filter == TransactionFilter.income,
+                          onTap: () => context
+                              .read<TransactionCubit>()
+                              .setFilter(TransactionFilter.income),
+                        ),
+                        _FilterChip(
+                          label: l10n.expenseType,
+                          active: state.filter == TransactionFilter.expense,
+                          onTap: () => context
+                              .read<TransactionCubit>()
+                              .setFilter(TransactionFilter.expense),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(l10n.monthlyIncome),
+                            Text(
+                              incomeTotal.toCurrency(locale),
+                              style: TextStyle(
+                                  color: Colors.green.shade700,
+                                  fontWeight: FontWeight.w700),
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 8),
+                            Text(l10n.monthlyExpense),
+                            Text(
+                              expenseTotal.toCurrency(locale),
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.error,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  if (filteredItems.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 24),
-                      child: Center(child: Text(l10n.noMatchingTransactions)),
-                    )
-                  else
-                    ...filteredItems.map((tx) {
-                      final isIncome = tx.type == TransactionType.income;
-                      final amountColor = isIncome
-                          ? Colors.green.shade700
-                          : Theme.of(context).colorScheme.error;
-                      final categoryName =
-                          _categoryNameById(state.categories, tx.categoryId);
+                    const SizedBox(height: 10),
+                    if (filteredItems.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 24),
+                        child: Center(child: Text(l10n.noMatchingTransactions)),
+                      )
+                    else
+                      ...filteredItems.map((tx) {
+                        final isIncome = tx.type == TransactionType.income;
+                        final amountColor = isIncome
+                            ? Colors.green.shade700
+                            : Theme.of(context).colorScheme.error;
+                        final categoryName =
+                            _categoryNameById(state.categories, tx.categoryId);
 
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: Card(
-                          child: ListTile(
-                            leading: Icon(
-                              isIncome ? Icons.south_west : Icons.north_east,
-                              color: _categoryColor(
-                                      state.categories, tx.categoryId) ??
-                                  amountColor,
-                            ),
-                            title: Text(tx.title),
-                            subtitle: Text(
-                              '${DateFormat.yMMMd(locale).format(tx.date)} • $categoryName • ${isIncome ? l10n.incomeType : l10n.expenseType}',
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  '${isIncome ? '+' : '-'}${tx.amount.toCurrency(locale)}',
-                                  style: TextStyle(
-                                      color: amountColor,
-                                      fontWeight: FontWeight.w700),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.edit_outlined),
-                                  tooltip: l10n.updateActionLabel,
-                                  onPressed: tx.id == null
-                                      ? null
-                                      : () => _showTransactionForm(context,
-                                          existing: tx),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete_outline),
-                                  tooltip: l10n.deleteActionLabel,
-                                  onPressed: tx.id == null
-                                      ? null
-                                      : () => _confirmDelete(context, tx.id!),
-                                ),
-                              ],
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: Card(
+                            child: ListTile(
+                              leading: Icon(
+                                isIncome ? Icons.south_west : Icons.north_east,
+                                color: _categoryColor(
+                                        state.categories, tx.categoryId) ??
+                                    amountColor,
+                              ),
+                              title: Text(tx.title),
+                              subtitle: Text(
+                                '${DateFormat.yMMMd(locale).format(tx.date)} • $categoryName • ${isIncome ? l10n.incomeType : l10n.expenseType}',
+                              ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    '${isIncome ? '+' : '-'}${tx.amount.toCurrency(locale)}',
+                                    style: TextStyle(
+                                        color: amountColor,
+                                        fontWeight: FontWeight.w700),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.edit_outlined),
+                                    tooltip: l10n.updateActionLabel,
+                                    onPressed: tx.id == null
+                                        ? null
+                                        : () => _showTransactionForm(context,
+                                            existing: tx),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete_outline),
+                                    tooltip: l10n.deleteActionLabel,
+                                    onPressed: tx.id == null
+                                        ? null
+                                        : () => _confirmDelete(context, tx.id!),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                      );
-                    }),
-                ],
+                        );
+                      }),
+                  ],
+                ),
               );
             },
           ),
@@ -429,11 +450,16 @@ class TransactionsPage extends StatelessWidget {
                           return;
                         }
 
+                        final parsedAmount = double.tryParse(
+                            amountCtrl.text.replaceAll(',', '.'));
+                        if (parsedAmount == null) {
+                          return;
+                        }
+
                         final model = TransactionModel(
                           id: existing?.id,
                           title: titleCtrl.text.trim(),
-                          amount: double.parse(
-                              amountCtrl.text.replaceAll(',', '.')),
+                          amount: parsedAmount,
                           date: selectedDate,
                           categoryId: selectedCategoryId,
                           type: selectedType,
@@ -441,11 +467,16 @@ class TransactionsPage extends StatelessWidget {
                         await HapticFeedback.lightImpact();
 
                         if (existing == null) {
-                          cubit.createTransaction(model);
+                          await cubit.createTransaction(model);
                         } else {
-                          cubit.updateTransaction(model);
+                          await cubit.updateTransaction(model);
                         }
-                        Navigator.pop(sheetContext);
+                        if (!sheetContext.mounted) {
+                          return;
+                        }
+                        if (cubit.state.error == null) {
+                          Navigator.pop(sheetContext);
+                        }
                       },
                       child: Text(existing == null
                           ? l10n.saveLabel

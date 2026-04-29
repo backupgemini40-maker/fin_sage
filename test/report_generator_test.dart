@@ -3,6 +3,7 @@ import 'package:fin_sage/features/reports/report_generator.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   final generator = ReportGenerator();
 
   final items = [
@@ -34,6 +35,27 @@ void main() {
 
   test('generatePdf should return non-empty bytes', () async {
     final pdf = await generator.generatePdf(items, title: 'Test Report');
+
+    expect(pdf, isNotEmpty);
+    expect(pdf.length, greaterThan(100));
+  });
+
+  test('generatePdf should support unicode content', () async {
+    final localizedItems = [
+      TransactionModel(
+        id: 3,
+        title: 'Makan siang cafe',
+        amount: 75000,
+        date: DateTime(2026, 4, 14),
+        categoryId: 1,
+        type: TransactionType.expense,
+      ),
+    ];
+
+    final pdf = await generator.generatePdf(
+      localizedItems,
+      title: 'Laporan Keuangan April 2026',
+    );
 
     expect(pdf, isNotEmpty);
     expect(pdf.length, greaterThan(100));

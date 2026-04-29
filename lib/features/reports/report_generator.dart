@@ -1,8 +1,8 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:csv/csv.dart';
 import 'package:fin_sage/data/models/transaction_model.dart';
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -54,11 +54,15 @@ class ReportContentLabels {
   final String pdfNetBalanceLabel;
 
   String transactionTypeLabel(TransactionType type) {
-    return type == TransactionType.income ? transactionTypeIncome : transactionTypeExpense;
+    return type == TransactionType.income
+        ? transactionTypeIncome
+        : transactionTypeExpense;
   }
 }
 
 class ReportGenerator {
+  static Future<_ReportPdfFonts>? _cachedFonts;
+
   Future<String> generateCsv(
     List<TransactionModel> items, {
     ReportContentLabels labels = const ReportContentLabels.english(),
@@ -103,6 +107,7 @@ class ReportGenerator {
     String? title,
     ReportContentLabels labels = const ReportContentLabels.english(),
   }) async {
+    final fonts = await (_cachedFonts ??= _loadPdfFonts());
     final income = items
         .where((item) => item.type == TransactionType.income)
         .fold<double>(0, (sum, item) => sum + item.amount);
@@ -114,17 +119,24 @@ class ReportGenerator {
     final pdf = pw.Document();
     pdf.addPage(
       pw.Page(
+        theme: pw.ThemeData.withFont(
+          base: fonts.regular,
+          bold: fonts.bold,
+        ),
         pageFormat: PdfPageFormat.a4,
         build: (context) {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Text(title ?? labels.pdfDefaultTitle, style: pw.TextStyle(fontSize: 20)),
+              pw.Text(title ?? labels.pdfDefaultTitle,
+                  style: pw.TextStyle(fontSize: 20)),
               pw.SizedBox(height: 16),
               pw.Text('${labels.pdfTransactionsLabel}: ${items.length}'),
               pw.Text('${labels.pdfIncomeLabel}: ${income.toStringAsFixed(2)}'),
-              pw.Text('${labels.pdfExpenseLabel}: ${expense.toStringAsFixed(2)}'),
-              pw.Text('${labels.pdfNetBalanceLabel}: ${balance.toStringAsFixed(2)}'),
+              pw.Text(
+                  '${labels.pdfExpenseLabel}: ${expense.toStringAsFixed(2)}'),
+              pw.Text(
+                  '${labels.pdfNetBalanceLabel}: ${balance.toStringAsFixed(2)}'),
               pw.SizedBox(height: 10),
               pw.Divider(),
               pw.SizedBox(height: 6),
@@ -143,4 +155,22 @@ class ReportGenerator {
     );
     return pdf.save();
   }
+
+  Future<_ReportPdfFonts> _loadPdfFonts() async {
+    final regularData =
+        await rootBundle.load('assets/fonts/Roboto-Regular.ttf');
+    final boldData = await rootBundle.load('assets/fonts/Roboto-Bold.ttf');
+
+    return _ReportPdfFonts(
+      regular: pw.Font.ttf(regularData),
+      bold: pw.Font.ttf(boldData),
+    );
+  }
+}
+
+class _ReportPdfFonts {
+  const _ReportPdfFonts({required this.regular, required this.bold});
+
+  final pw.Font regular;
+  final pw.Font bold;
 }
