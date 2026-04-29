@@ -19,6 +19,19 @@ class AppLocalizationsId extends AppLocalizations {
       'Gagal membuka data lokal terenkripsi. Ini bisa terjadi setelah install ulang. Pulihkan dari backup atau reset data lokal.';
 
   @override
+  String get recoveryWelcomeTitle => 'Selamat datang kembali';
+
+  @override
+  String get recoveryWelcomeBody =>
+      'Kami mendeteksi data lokal terenkripsi dari instalasi sebelumnya. Pilih mulai baru atau pulihkan dari backup.';
+
+  @override
+  String get recoveryStartNewAction => 'Mulai Baru';
+
+  @override
+  String get recoveryRestoreAction => 'Pulihkan dari Backup';
+
+  @override
   String get signInGoogle => 'Masuk dengan Google';
 
   @override

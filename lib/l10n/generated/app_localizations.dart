@@ -116,6 +116,30 @@ abstract class AppLocalizations {
   /// **'Unable to open local encrypted data. This can happen after reinstall. Restore from backup or reset local data.'**
   String get databaseOpenFailed;
 
+  /// No description provided for @recoveryWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back'**
+  String get recoveryWelcomeTitle;
+
+  /// No description provided for @recoveryWelcomeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'We detected local encrypted data from a previous install. Choose to start fresh or restore from backup.'**
+  String get recoveryWelcomeBody;
+
+  /// No description provided for @recoveryStartNewAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Start New'**
+  String get recoveryStartNewAction;
+
+  /// No description provided for @recoveryRestoreAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore from Backup'**
+  String get recoveryRestoreAction;
+
   /// No description provided for @signInGoogle.
   ///
   /// In en, this message translates to:

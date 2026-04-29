@@ -2,6 +2,7 @@ import 'package:fin_sage/features/auth/auth_page.dart';
 import 'package:fin_sage/features/auth/auth_gate_page.dart';
 import 'package:fin_sage/features/budgets/budgets_page.dart';
 import 'package:fin_sage/features/dashboard/dashboard_page.dart';
+import 'package:fin_sage/features/recovery/recovery_page.dart';
 import 'package:fin_sage/features/reports/reports_page.dart';
 import 'package:fin_sage/features/settings/settings_page.dart';
 import 'package:fin_sage/features/transactions/transactions_page.dart';
@@ -15,6 +16,7 @@ class AppRoutes {
   static const String budgets = '/budgets';
   static const String reports = '/reports';
   static const String settingsRoute = '/settings';
+  static const String recovery = '/recovery';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -32,6 +34,8 @@ class AppRoutes {
         return _material(const ReportsPage(), settings);
       case settingsRoute:
         return _material(const SettingsPage(), settings);
+      case recovery:
+        return _material(const RecoveryPage(), settings);
       default:
         return _material(const AuthGatePage(), settings);
     }

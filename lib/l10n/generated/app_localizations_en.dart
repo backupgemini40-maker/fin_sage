@@ -19,6 +19,19 @@ class AppLocalizationsEn extends AppLocalizations {
       'Unable to open local encrypted data. This can happen after reinstall. Restore from backup or reset local data.';
 
   @override
+  String get recoveryWelcomeTitle => 'Welcome back';
+
+  @override
+  String get recoveryWelcomeBody =>
+      'We detected local encrypted data from a previous install. Choose to start fresh or restore from backup.';
+
+  @override
+  String get recoveryStartNewAction => 'Start New';
+
+  @override
+  String get recoveryRestoreAction => 'Restore from Backup';
+
+  @override
   String get signInGoogle => 'Continue with Google';
 
   @override
