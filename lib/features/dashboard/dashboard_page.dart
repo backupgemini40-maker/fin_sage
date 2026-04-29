@@ -1,7 +1,8 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:fin_sage/core/constants/app_routes.dart';
-import 'package:fin_sage/core/constants/icons/home_icon.dart';
+import 'package:fin_sage/core/constants/icons/budget_icon.dart';
 import 'package:fin_sage/core/constants/icons/report_icon.dart';
+import 'package:fin_sage/core/constants/icons/settings_icon.dart';
 import 'package:fin_sage/core/constants/icons/transaction_icon.dart';
 import 'package:fin_sage/core/errors/error_boundary.dart';
 import 'package:fin_sage/core/utils/extensions.dart';
@@ -36,24 +37,40 @@ class DashboardPage extends StatelessWidget {
             child: BlocBuilder<DashboardCubit, DashboardState>(
               builder: (context, state) {
                 if (state.loading) {
-                  return const Padding(
+                  return Padding(
                     padding: EdgeInsets.all(16),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        LoadingSkeleton(height: 180),
+                        const LoadingSkeleton(height: 180),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: const [
+                            Expanded(child: LoadingSkeleton(height: 86)),
+                            SizedBox(width: 12),
+                            Expanded(child: LoadingSkeleton(height: 86)),
+                          ],
+                        ),
                         SizedBox(height: 16),
-                        LoadingSkeleton(height: 220),
+                        const LoadingSkeleton(height: 220),
+                        const SizedBox(height: 16),
+                        const LoadingSkeleton(height: 54),
+                        const SizedBox(height: 10),
+                        const LoadingSkeleton(height: 54),
+                        const SizedBox(height: 10),
+                        const LoadingSkeleton(height: 54),
                       ],
                     ),
                   );
                 }
 
                 final locale = Localizations.localeOf(context).toLanguageTag();
-                final spots = [
-                  FlSpot(0, 1),
-                  FlSpot(1, (state.income * 0.2).clamp(1, 100000).toDouble()),
-                  FlSpot(2, (state.expense * 0.2).clamp(1, 100000).toDouble()),
-                  FlSpot(3, state.balance.abs().clamp(1, 100000).toDouble()),
+                final trendSpots = <FlSpot>[
+                  for (var i = 0; i < state.balanceTrend.length; i++)
+                    FlSpot(i.toDouble(), state.balanceTrend[i].balance),
+                ];
+                final trendDates = <DateTime>[
+                  for (final point in state.balanceTrend) point.date,
                 ];
 
                 return RefreshIndicator(
@@ -103,7 +120,11 @@ class DashboardPage extends StatelessWidget {
                       Semantics(
                         container: true,
                         label: l10n.balanceTrendChartLabel,
-                        child: AnimatedBalanceChart(spots: spots),
+                        child: AnimatedBalanceChart(
+                          spots: trendSpots,
+                          labels: trendDates,
+                          locale: locale,
+                        ),
                       ),
                       const SizedBox(height: 16),
                       Text(l10n.recentTransactions, style: Theme.of(context).textTheme.titleMedium),
@@ -129,12 +150,12 @@ class DashboardPage extends StatelessWidget {
                             route: AppRoutes.transactions,
                             svg: kTransactionIconSvg,
                           ),
-                          _RouteChip(label: l10n.budgetsTitle, route: AppRoutes.budgets, svg: kHomeIconSvg),
+                          _RouteChip(label: l10n.budgetsTitle, route: AppRoutes.budgets, svg: kBudgetIconSvg),
                           _RouteChip(label: l10n.reportsTitle, route: AppRoutes.reports, svg: kReportIconSvg),
                           _RouteChip(
                             label: l10n.settingsTitle,
                             route: AppRoutes.settingsRoute,
-                            svg: kHomeIconSvg,
+                            svg: kSettingsIconSvg,
                           ),
                         ],
                       ),

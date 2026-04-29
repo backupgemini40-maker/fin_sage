@@ -60,7 +60,10 @@ void main() {
           .having((s) => s.income, 'income', 15000000)
           .having((s) => s.expense, 'expense', 550000)
           .having((s) => s.recentTransactions.length, 'recent count', 3)
-          .having((s) => s.monthlyTransactionCount, 'monthly count', 2),
+          .having((s) => s.monthlyTransactionCount, 'monthly count', 2)
+          .having((s) => s.balanceTrend.length, 'trend points', 2)
+          .having((s) => s.balanceTrend.first.balance, 'first trend balance', 15000000)
+          .having((s) => s.balanceTrend.last.balance, 'last trend balance', 14450000),
     ],
   );
 
