@@ -342,8 +342,8 @@ jobs:
               } >> android/app/build.gradle
             fi
 
-            sed -i 's/signingConfig signingConfigs.debug/signingConfig signingConfigs.release/g' android/app/build.gradle
-            sed -i 's/signingConfig = signingConfigs.debug/signingConfig = signingConfigs.release/g' android/app/build.gradle
+            sed -i 's/signingConfig signingConfigs.release/signingConfig signingConfigs.debug/g' android/app/build.gradle
+            sed -i 's/signingConfig = signingConfigs.release/signingConfig = signingConfigs.debug/g' android/app/build.gradle
           fi
 
           if [ -f android/app/build.gradle.kts ]; then
@@ -375,8 +375,8 @@ jobs:
               } >> android/app/build.gradle.kts
             fi
 
-            sed -i 's/signingConfig = signingConfigs.getByName("debug")/signingConfig = signingConfigs.getByName("release")/g' android/app/build.gradle.kts
-            sed -i 's/signingConfig = signingConfigs.debug/signingConfig = signingConfigs.getByName("release")/g' android/app/build.gradle.kts
+            sed -i 's/signingConfig = signingConfigs.getByName("release")/signingConfig = signingConfigs.getByName("debug")/g' android/app/build.gradle.kts
+            sed -i 's/signingConfig = signingConfigs.debug/signingConfig = signingConfigs.getByName("debug")/g' android/app/build.gradle.kts
           fi
 
       - name: Print signing certificate fingerprints
