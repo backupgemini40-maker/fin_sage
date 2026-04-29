@@ -316,21 +316,32 @@ jobs:
       - name: Configure Android release signing
         run: |
           if [ -f android/app/build.gradle ]; then
-            if ! grep -q "keystorePropertiesFile" android/app/build.gradle; then
-              tmp_file="$(mktemp)"
-              {
-                printf '%s\n' 'def keystoreProperties = new Properties()'
-                printf '%s\n' 'def keystorePropertiesFile = rootProject.file("key.properties")'
-                printf '%s\n' 'if (keystorePropertiesFile.exists()) {'
-                printf '%s\n' '    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))'
-                printf '%s\n' '}'
-                cat android/app/build.gradle
-              } > "$tmp_file"
-              mv "$tmp_file" android/app/build.gradle
-            fi
+            if ! grep -q "finsageReleaseSigningConfig" android/app/build.gradle; then
+              cat <<'EOT' >> android/app/build.gradle
 
-            if ! grep -q "signingConfigs[[:space:]]*{" android/app/build.gradle; then
-              sed -i '/android[[:space:]]*{/a\    signingConfigs {\n        release {\n            keyAlias keystoreProperties["keyAlias"]\n            keyPassword keystoreProperties["keyPassword"]\n            storeFile keystoreProperties["storeFile"] ? file(keystoreProperties["storeFile"]) : null\n            storePassword keystoreProperties["storePassword"]\n        }\n    }' android/app/build.gradle
+              def keystoreProperties = new Properties()
+              def keystorePropertiesFile = rootProject.file("key.properties")
+              if (keystorePropertiesFile.exists()) {
+                  keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+              }
+
+              android {
+                  signingConfigs {
+                      release {
+                          keyAlias keystoreProperties["keyAlias"]
+                          keyPassword keystoreProperties["keyPassword"]
+                          storeFile keystoreProperties["storeFile"] ? file(keystoreProperties["storeFile"]) : null
+                          storePassword keystoreProperties["storePassword"]
+                      }
+                  }
+                  buildTypes {
+                      release {
+                          signingConfig signingConfigs.release
+                      }
+                  }
+              }
+              // finsageReleaseSigningConfig
+              EOT
             fi
 
             sed -i 's/signingConfig signingConfigs.debug/signingConfig signingConfigs.release/g' android/app/build.gradle
@@ -338,24 +349,35 @@ jobs:
           fi
 
           if [ -f android/app/build.gradle.kts ]; then
-            if ! grep -q "keystorePropertiesFile" android/app/build.gradle.kts; then
-              tmp_file="$(mktemp)"
-              {
-                printf '%s\n' 'import java.util.Properties'
-                printf '%s\n' 'import java.io.FileInputStream'
-                printf '%s\n' ''
-                printf '%s\n' 'val keystoreProperties = Properties()'
-                printf '%s\n' 'val keystorePropertiesFile = rootProject.file("key.properties")'
-                printf '%s\n' 'if (keystorePropertiesFile.exists()) {'
-                printf '%s\n' '    keystoreProperties.load(FileInputStream(keystorePropertiesFile))'
-                printf '%s\n' '}'
-                cat android/app/build.gradle.kts
-              } > "$tmp_file"
-              mv "$tmp_file" android/app/build.gradle.kts
-            fi
+            if ! grep -q "finsageReleaseSigningConfig" android/app/build.gradle.kts; then
+              cat <<'EOT' >> android/app/build.gradle.kts
 
-            if ! grep -q "signingConfigs" android/app/build.gradle.kts; then
-              sed -i '/android[[:space:]]*{/a\    signingConfigs {\n        create("release") {\n            keyAlias = keystoreProperties["keyAlias"] as String?\n            keyPassword = keystoreProperties["keyPassword"] as String?\n            storeFile = (keystoreProperties["storeFile"] as String?)?.let { file(it) }\n            storePassword = keystoreProperties["storePassword"] as String?\n        }\n    }' android/app/build.gradle.kts
+              import java.io.FileInputStream
+              import java.util.Properties
+
+              val keystoreProperties = Properties()
+              val keystorePropertiesFile = rootProject.file("key.properties")
+              if (keystorePropertiesFile.exists()) {
+                  keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+              }
+
+              android {
+                  signingConfigs {
+                      create("release") {
+                          keyAlias = keystoreProperties["keyAlias"] as String?
+                          keyPassword = keystoreProperties["keyPassword"] as String?
+                          storeFile = (keystoreProperties["storeFile"] as String?)?.let { file(it) }
+                          storePassword = keystoreProperties["storePassword"] as String?
+                      }
+                  }
+                  buildTypes {
+                      getByName("release") {
+                          signingConfig = signingConfigs.getByName("release")
+                      }
+                  }
+              }
+              // finsageReleaseSigningConfig
+              EOT
             fi
 
             sed -i 's/signingConfig = signingConfigs.getByName("debug")/signingConfig = signingConfigs.getByName("release")/g' android/app/build.gradle.kts
