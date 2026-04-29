@@ -125,12 +125,15 @@ class SettingsPage extends StatelessWidget {
                                 ListTile(
                                   contentPadding: EdgeInsets.zero,
                                   title: Text(l10n.darkMode),
-                                  trailing: Switch(
-                                    value: state.themeMode == ThemeMode.dark,
-                                    onChanged: (value) => cubit.setThemeMode(
-                                        value
-                                            ? ThemeMode.dark
-                                            : ThemeMode.light),
+                                  trailing: Semantics(
+                                    label: l10n.darkMode,
+                                    child: Switch(
+                                      value: state.themeMode == ThemeMode.dark,
+                                      onChanged: (value) => cubit.setThemeMode(
+                                          value
+                                              ? ThemeMode.dark
+                                              : ThemeMode.light),
+                                    ),
                                   ),
                                 ),
                                 Divider(
@@ -173,10 +176,13 @@ class SettingsPage extends StatelessWidget {
                                 ListTile(
                                   contentPadding: EdgeInsets.zero,
                                   title: Text(l10n.budgetNotificationsLabel),
-                                  trailing: Switch(
-                                    value: state.notificationsEnabled,
-                                    onChanged: (value) =>
-                                        cubit.setNotificationsEnabled(value),
+                                  trailing: Semantics(
+                                    label: l10n.budgetNotificationsLabel,
+                                    child: Switch(
+                                      value: state.notificationsEnabled,
+                                      onChanged: (value) =>
+                                          cubit.setNotificationsEnabled(value),
+                                    ),
                                   ),
                                 ),
                               ],

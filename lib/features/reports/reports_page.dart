@@ -31,11 +31,11 @@ class ReportsPage extends StatefulWidget {
 class _ReportsPageState extends State<ReportsPage> {
   DateTime _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
   _ReportTypeFilter _typeFilter = _ReportTypeFilter.all;
+  final ReportGenerator _generator = ReportGenerator();
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final generator = ReportGenerator();
     final localeTag = Localizations.localeOf(context).toLanguageTag();
     final reportLabels = ReportContentLabels(
       csvHeaderId: l10n.reportCsvHeaderId,
@@ -187,7 +187,7 @@ class _ReportsPageState extends State<ReportsPage> {
                                         DateFormat.yMMMM(localeTag)
                                             .format(_selectedMonth),
                                       );
-                                      final pdf = await generator.generatePdf(
+                                      final pdf = await _generator.generatePdf(
                                         filteredTxs,
                                         title: title,
                                         labels: reportLabels,
@@ -212,7 +212,7 @@ class _ReportsPageState extends State<ReportsPage> {
                                         );
                                       }
                                       final file =
-                                          await generator.exportCsvFile(
+                                          await _generator.exportCsvFile(
                                         filteredTxs,
                                         labels: reportLabels,
                                       );
@@ -235,10 +235,20 @@ class _ReportsPageState extends State<ReportsPage> {
                           ],
                           if (state.error != null) ...[
                             const SizedBox(height: 24),
-                            Text(
-                              localizeErrorMessage(l10n, state.error!),
-                              style: TextStyle(
-                                  color: Theme.of(context).colorScheme.error),
+                            Card(
+                              color:
+                                  Theme.of(context).colorScheme.errorContainer,
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Text(
+                                  localizeErrorMessage(l10n, state.error!),
+                                  style: TextStyle(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onErrorContainer,
+                                  ),
+                                ),
+                              ),
                             ),
                           ],
                         ],
