@@ -33,4 +33,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
 
   @override
   Future<Map<String, double>> monthlySummary() => _drift.monthlySummary();
+
+  @override
+  Future<void> recoverCorruptedDatabase() => _local.purgeEncryptedDatabase();
 }

@@ -109,4 +109,14 @@ class TransactionCubit extends Cubit<TransactionState> {
       emit(state.copyWith(error: mapErrorMessage(e)));
     }
   }
+
+  Future<void> recoverCorruptedDatabase() async {
+    emit(state.copyWith(loading: true, error: null));
+    try {
+      await _repo.recoverCorruptedDatabase();
+      await loadTransactions();
+    } catch (e) {
+      emit(state.copyWith(loading: false, error: mapErrorMessage(e)));
+    }
+  }
 }

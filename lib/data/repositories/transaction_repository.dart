@@ -10,4 +10,5 @@ abstract class TransactionRepository {
   Future<void> saveCategory(CategoryModel category);
   Future<void> archiveCategory(int categoryId);
   Future<Map<String, double>> monthlySummary();
+  Future<void> recoverCorruptedDatabase();
 }

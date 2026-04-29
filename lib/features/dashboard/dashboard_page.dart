@@ -4,7 +4,9 @@ import 'package:fin_sage/core/constants/icons/budget_icon.dart';
 import 'package:fin_sage/core/constants/icons/report_icon.dart';
 import 'package:fin_sage/core/constants/icons/settings_icon.dart';
 import 'package:fin_sage/core/constants/icons/transaction_icon.dart';
+import 'package:fin_sage/core/errors/app_error_codes.dart';
 import 'package:fin_sage/core/errors/error_boundary.dart';
+import 'package:fin_sage/core/errors/error_localizer.dart';
 import 'package:fin_sage/core/utils/extensions.dart';
 import 'package:fin_sage/core/widgets/animated_balance_chart.dart';
 import 'package:fin_sage/core/widgets/app_bottom_nav.dart';
@@ -12,9 +14,11 @@ import 'package:fin_sage/core/widgets/loading_skeleton.dart';
 import 'package:fin_sage/core/widgets/premium_card.dart';
 import 'package:fin_sage/data/models/transaction_model.dart';
 import 'package:fin_sage/l10n/generated/app_localizations.dart';
+import 'package:fin_sage/logic/budgets/budget_cubit.dart';
 import 'package:fin_sage/logic/dashboard/dashboard_cubit.dart';
 import 'package:fin_sage/logic/transactions/transaction_cubit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
@@ -106,12 +110,39 @@ class DashboardPage extends StatelessWidget {
                         const SizedBox(height: 12),
                         Card(
                           color: Theme.of(context).colorScheme.errorContainer,
-                          child: ListTile(
-                            title: Text(state.error!),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.refresh),
-                              tooltip: l10n.refreshLabel,
-                              onPressed: () => context.read<DashboardCubit>().loadOverview(),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(localizeErrorMessage(l10n, state.error!)),
+                                const SizedBox(height: 10),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: [
+                                    OutlinedButton.icon(
+                                      icon: const Icon(Icons.refresh),
+                                      label: Text(l10n.refreshLabel),
+                                      onPressed: () => context.read<DashboardCubit>().loadOverview(),
+                                    ),
+                                    if (state.error == AppErrorCodes.databaseOpenFailed) ...[
+                                      FilledButton.icon(
+                                        icon: const Icon(Icons.restart_alt),
+                                        label: Text(l10n.resetActionLabel),
+                                        onPressed: () => _startFreshDatabase(context),
+                                      ),
+                                      FilledButton.tonalIcon(
+                                        icon: const Icon(Icons.restore),
+                                        label: Text(l10n.restoreActionLabel),
+                                        onPressed: () {
+                                          Navigator.pushNamed(context, AppRoutes.settingsRoute);
+                                        },
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -217,4 +248,24 @@ class _RouteChip extends StatelessWidget {
       onPressed: () => Navigator.pushNamed(context, route),
     );
   }
+}
+
+Future<void> _startFreshDatabase(BuildContext context) async {
+  final messenger = ScaffoldMessenger.of(context);
+  final l10n = AppLocalizations.of(context);
+
+  await HapticFeedback.mediumImpact();
+  await context.read<TransactionCubit>().recoverCorruptedDatabase();
+  if (!context.mounted) {
+    return;
+  }
+  await context.read<BudgetCubit>().loadBudgets();
+  if (!context.mounted) {
+    return;
+  }
+  await context.read<DashboardCubit>().loadOverview();
+  if (!context.mounted) {
+    return;
+  }
+  messenger.showSnackBar(SnackBar(content: Text(l10n.localDataResetCompleted)));
 }
