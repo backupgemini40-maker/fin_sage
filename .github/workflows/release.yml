@@ -317,13 +317,16 @@ jobs:
         run: |
           if [ -f android/app/build.gradle ]; then
             if ! grep -q "keystorePropertiesFile" android/app/build.gradle; then
-              cat <<'EOT' | cat - android/app/build.gradle > /tmp/app_build_gradle && mv /tmp/app_build_gradle android/app/build.gradle
-              def keystoreProperties = new Properties()
-              def keystorePropertiesFile = rootProject.file("key.properties")
-              if (keystorePropertiesFile.exists()) {
-                  keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
-              }
-              EOT
+              tmp_file="$(mktemp)"
+              {
+                printf '%s\n' 'def keystoreProperties = new Properties()'
+                printf '%s\n' 'def keystorePropertiesFile = rootProject.file("key.properties")'
+                printf '%s\n' 'if (keystorePropertiesFile.exists()) {'
+                printf '%s\n' '    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))'
+                printf '%s\n' '}'
+                cat android/app/build.gradle
+              } > "$tmp_file"
+              mv "$tmp_file" android/app/build.gradle
             fi
 
             if ! grep -q "signingConfigs[[:space:]]*{" android/app/build.gradle; then
@@ -336,16 +339,19 @@ jobs:
 
           if [ -f android/app/build.gradle.kts ]; then
             if ! grep -q "keystorePropertiesFile" android/app/build.gradle.kts; then
-              cat <<'EOT' | cat - android/app/build.gradle.kts > /tmp/app_build_gradle_kts && mv /tmp/app_build_gradle_kts android/app/build.gradle.kts
-              import java.util.Properties
-              import java.io.FileInputStream
-
-              val keystoreProperties = Properties()
-              val keystorePropertiesFile = rootProject.file("key.properties")
-              if (keystorePropertiesFile.exists()) {
-                  keystoreProperties.load(FileInputStream(keystorePropertiesFile))
-              }
-              EOT
+              tmp_file="$(mktemp)"
+              {
+                printf '%s\n' 'import java.util.Properties'
+                printf '%s\n' 'import java.io.FileInputStream'
+                printf '%s\n' ''
+                printf '%s\n' 'val keystoreProperties = Properties()'
+                printf '%s\n' 'val keystorePropertiesFile = rootProject.file("key.properties")'
+                printf '%s\n' 'if (keystorePropertiesFile.exists()) {'
+                printf '%s\n' '    keystoreProperties.load(FileInputStream(keystorePropertiesFile))'
+                printf '%s\n' '}'
+                cat android/app/build.gradle.kts
+              } > "$tmp_file"
+              mv "$tmp_file" android/app/build.gradle.kts
             fi
 
             if ! grep -q "signingConfigs" android/app/build.gradle.kts; then
