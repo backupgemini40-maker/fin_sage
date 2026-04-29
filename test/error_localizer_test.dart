@@ -5,8 +5,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  final l10nEn = AppLocalizations(const Locale('en'));
-  final l10nId = AppLocalizations(const Locale('id'));
+  final l10nEn = lookupAppLocalizations(const Locale('en'));
+  final l10nId = lookupAppLocalizations(const Locale('id'));
 
   test('localizeErrorMessage maps known codes', () {
     expect(localizeErrorMessage(l10nEn, AppErrorCodes.unexpectedError), l10nEn.unexpectedError);
