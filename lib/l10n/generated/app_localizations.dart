@@ -62,8 +62,7 @@ import 'app_localizations_id.dart';
 /// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
 abstract class AppLocalizations {
-  AppLocalizations(String locale)
-      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -71,8 +70,7 @@ abstract class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate =
-      _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -84,8 +82,7 @@ abstract class AppLocalizations {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
-      <LocalizationsDelegate<dynamic>>[
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
     delegate,
     GlobalMaterialLocalizations.delegate,
     GlobalCupertinoLocalizations.delegate,
@@ -271,6 +268,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Settings'**
   String get settingsTitle;
+
+  /// No description provided for @accountsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Accounts'**
+  String get accountsTitle;
+
+  /// No description provided for @addAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Account'**
+  String get addAccount;
+
+  /// No description provided for @editAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Account'**
+  String get editAccount;
+
+  /// No description provided for @accountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get accountLabel;
+
+  /// No description provided for @accountNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Name'**
+  String get accountNameLabel;
+
+  /// No description provided for @accountTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Type'**
+  String get accountTypeLabel;
+
+  /// No description provided for @accountTypeCash.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash'**
+  String get accountTypeCash;
+
+  /// No description provided for @accountTypeBank.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank'**
+  String get accountTypeBank;
+
+  /// No description provided for @accountTypeWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet'**
+  String get accountTypeWallet;
+
+  /// No description provided for @accountTypeSavings.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings'**
+  String get accountTypeSavings;
+
+  /// No description provided for @accountTypeCredit.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit'**
+  String get accountTypeCredit;
+
+  /// No description provided for @initialBalanceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Initial Balance'**
+  String get initialBalanceLabel;
+
+  /// No description provided for @currentBalanceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Balance'**
+  String get currentBalanceLabel;
+
+  /// No description provided for @accountColorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Accent Color'**
+  String get accountColorLabel;
+
+  /// No description provided for @totalAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} accounts'**
+  String totalAccounts(Object count);
+
+  /// No description provided for @emptyAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'No accounts yet'**
+  String get emptyAccounts;
+
+  /// No description provided for @emptyAccountsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create an account to track cash, banks, wallets, and cards.'**
+  String get emptyAccountsSubtitle;
+
+  /// No description provided for @archiveAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive Account'**
+  String get archiveAccountTitle;
+
+  /// No description provided for @archiveAccountBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive account \"{name}\"?'**
+  String archiveAccountBody(Object name);
+
+  /// No description provided for @accountArchived.
+  ///
+  /// In en, this message translates to:
+  /// **'Account archived'**
+  String get accountArchived;
+
+  /// No description provided for @accountAlreadyExists.
+  ///
+  /// In en, this message translates to:
+  /// **'Account already exists'**
+  String get accountAlreadyExists;
+
+  /// No description provided for @accountNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Account not found'**
+  String get accountNotFound;
+
+  /// No description provided for @accountBalanceNotZero.
+  ///
+  /// In en, this message translates to:
+  /// **'Move or clear the account balance before archiving'**
+  String get accountBalanceNotZero;
+
+  /// No description provided for @defaultAccountArchiveBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Default account cannot be archived'**
+  String get defaultAccountArchiveBlocked;
+
+  /// No description provided for @dashboardAccountSnapshot.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Snapshot'**
+  String get dashboardAccountSnapshot;
+
+  /// No description provided for @cashFlowHealthTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash Flow Health'**
+  String get cashFlowHealthTitle;
+
+  /// No description provided for @monthlyNetCashFlow.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly Net Cash Flow'**
+  String get monthlyNetCashFlow;
+
+  /// No description provided for @savingsRateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings Rate'**
+  String get savingsRateLabel;
+
+  /// No description provided for @positiveCashFlowInsight.
+  ///
+  /// In en, this message translates to:
+  /// **'Positive cash flow this month'**
+  String get positiveCashFlowInsight;
+
+  /// No description provided for @negativeCashFlowInsight.
+  ///
+  /// In en, this message translates to:
+  /// **'Spending is above income this month'**
+  String get negativeCashFlowInsight;
 
   /// No description provided for @operationInProgress.
   ///
@@ -535,6 +712,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'category_id'**
   String get reportCsvHeaderCategoryId;
+
+  /// No description provided for @reportCsvHeaderAccountId.
+  ///
+  /// In en, this message translates to:
+  /// **'account_id'**
+  String get reportCsvHeaderAccountId;
 
   /// No description provided for @transactionCount.
   ///
@@ -877,10 +1060,105 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Restore'**
   String get restoreActionLabel;
+
+  /// No description provided for @recurringTransactionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring Transactions'**
+  String get recurringTransactionsTitle;
+
+  /// No description provided for @recurringTransactionsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage automatic transactions'**
+  String get recurringTransactionsSubtitle;
+
+  /// No description provided for @addRecurringTransaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Recurring Transaction'**
+  String get addRecurringTransaction;
+
+  /// No description provided for @editRecurringTransaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Recurring Transaction'**
+  String get editRecurringTransaction;
+
+  /// No description provided for @recurringEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No recurring transactions yet'**
+  String get recurringEmptyTitle;
+
+  /// No description provided for @recurringEmptySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Automate subscriptions, bills, salary, and transfers.'**
+  String get recurringEmptySubtitle;
+
+  /// No description provided for @recurrenceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurrence'**
+  String get recurrenceLabel;
+
+  /// No description provided for @recurrenceDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily'**
+  String get recurrenceDaily;
+
+  /// No description provided for @recurrenceWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get recurrenceWeekly;
+
+  /// No description provided for @recurrenceMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get recurrenceMonthly;
+
+  /// No description provided for @recurrenceYearly.
+  ///
+  /// In en, this message translates to:
+  /// **'Yearly'**
+  String get recurrenceYearly;
+
+  /// No description provided for @recurrenceCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Rule'**
+  String get recurrenceCustom;
+
+  /// No description provided for @recurrenceRuleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Rule'**
+  String get recurrenceRuleLabel;
+
+  /// No description provided for @rruleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'RRULE'**
+  String get rruleLabel;
+
+  /// No description provided for @invalidRRule.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid RRULE'**
+  String get invalidRRule;
+
+  /// No description provided for @accountAndCategoryRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please create at least one category and one account first.'**
+  String get accountAndCategoryRequired;
 }
 
-class _AppLocalizationsDelegate
-    extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
@@ -889,25 +1167,25 @@ class _AppLocalizationsDelegate
   }
 
   @override
-  bool isSupported(Locale locale) =>
-      <String>['en', 'id'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>['en', 'id'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
+
+
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'en':
-      return AppLocalizationsEn();
-    case 'id':
-      return AppLocalizationsId();
+    case 'en': return AppLocalizationsEn();
+    case 'id': return AppLocalizationsId();
   }
 
   throw FlutterError(
-      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-      'an issue with the localizations generation tool. Please file an issue '
-      'on GitHub with a reproducible sample app and the gen-l10n configuration '
-      'that was used.');
+    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.'
+  );
 }

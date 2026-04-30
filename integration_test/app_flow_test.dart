@@ -1,9 +1,11 @@
 import 'package:fin_sage/data/datasources/local/auto_backup_telemetry_storage.dart';
 import 'package:fin_sage/data/datasources/local/local_database_datasource.dart';
 import 'package:fin_sage/data/datasources/local/settings_storage.dart';
+import 'package:fin_sage/data/models/account_model.dart';
 import 'package:fin_sage/data/models/backup_file_model.dart';
 import 'package:fin_sage/data/models/category_model.dart';
 import 'package:fin_sage/data/models/transaction_model.dart';
+import 'package:fin_sage/data/repositories/account_repository.dart';
 import 'package:fin_sage/data/repositories/backup_repository.dart';
 import 'package:fin_sage/data/repositories/transaction_repository.dart';
 import 'package:fin_sage/features/settings/backup_scheduler.dart';
@@ -16,13 +18,20 @@ import 'package:mocktail/mocktail.dart';
 
 class MockTransactionRepository extends Mock implements TransactionRepository {}
 
+class MockAccountRepository extends Mock implements AccountRepository {}
+
 class MockBackupRepository extends Mock implements BackupRepository {}
 
 class MockSettingsStorage extends Mock implements SettingsStorage {}
 
-class MockLocalDatabaseDataSource extends Mock implements LocalDatabaseDataSource {}
-class MockAutoBackupTelemetryStorage extends Mock implements AutoBackupTelemetryStorage {}
-class MockAutoBackupValidationScheduler extends Mock implements AutoBackupValidationScheduler {}
+class MockLocalDatabaseDataSource extends Mock
+    implements LocalDatabaseDataSource {}
+
+class MockAutoBackupTelemetryStorage extends Mock
+    implements AutoBackupTelemetryStorage {}
+
+class MockAutoBackupValidationScheduler extends Mock
+    implements AutoBackupValidationScheduler {}
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -35,6 +44,7 @@ void main() {
         amount: 1,
         date: DateTime(2026, 1, 1),
         categoryId: 1,
+        accountId: 1,
         type: TransactionType.expense,
       ),
     );
@@ -43,11 +53,23 @@ void main() {
 
   testWidgets('transaction flow integration: load and create', (tester) async {
     final repository = MockTransactionRepository();
-    final cubit = TransactionCubit(repository);
+    final accountRepository = MockAccountRepository();
+    final cubit = TransactionCubit(repository, accountRepository);
     addTearDown(cubit.close);
 
     const categories = [
-      CategoryModel(id: 1, name: 'General', colorHex: '#0D3B66', icon: 'wallet'),
+      CategoryModel(
+          id: 1, name: 'General', colorHex: '#0D3B66', icon: 'wallet'),
+    ];
+    const accounts = [
+      AccountModel(
+        id: 1,
+        name: 'Primary',
+        type: 'Cash',
+        balance: 0,
+        colorHex: '#4F8FC0',
+        icon: 'account_balance_wallet',
+      ),
     ];
 
     var transactions = <TransactionModel>[
@@ -57,13 +79,19 @@ void main() {
         amount: 45000,
         date: DateTime(2026, 4, 1),
         categoryId: 1,
+        accountId: 1,
         type: TransactionType.expense,
       ),
     ];
 
-    when(() => repository.fetchCategories()).thenAnswer((_) async => categories);
-    when(() => repository.fetchTransactions()).thenAnswer((_) async => transactions);
-    when(() => repository.saveTransaction(any())).thenAnswer((invocation) async {
+    when(() => repository.fetchCategories())
+        .thenAnswer((_) async => categories);
+    when(() => repository.fetchTransactions())
+        .thenAnswer((_) async => transactions);
+    when(() => accountRepository.getAccounts())
+        .thenAnswer((_) async => accounts);
+    when(() => repository.saveTransaction(any()))
+        .thenAnswer((invocation) async {
       final tx = invocation.positionalArguments.first as TransactionModel;
       transactions = [
         ...transactions,
@@ -73,6 +101,7 @@ void main() {
           amount: tx.amount,
           date: tx.date,
           categoryId: tx.categoryId,
+          accountId: tx.accountId,
           type: tx.type,
         ),
       ];
@@ -89,6 +118,7 @@ void main() {
         amount: 5000000,
         date: DateTime(2026, 4, 2),
         categoryId: 1,
+        accountId: 1,
         type: TransactionType.income,
       ),
     );
@@ -98,23 +128,28 @@ void main() {
     expect(cubit.state.items.any((it) => it.title == 'Salary'), isTrue);
   });
 
-  testWidgets('backup flow integration: backup and preview restore', (tester) async {
+  testWidgets('backup flow integration: backup and preview restore',
+      (tester) async {
     final backupRepository = MockBackupRepository();
     final storage = MockSettingsStorage();
     final localDatabase = MockLocalDatabaseDataSource();
     final telemetry = MockAutoBackupTelemetryStorage();
     final validationScheduler = MockAutoBackupValidationScheduler();
-    final cubit =
-        SettingsCubit(backupRepository, storage, localDatabase, telemetry, validationScheduler);
+    final cubit = SettingsCubit(backupRepository, storage, localDatabase,
+        telemetry, validationScheduler);
     addTearDown(cubit.close);
 
-    when(() => storage.loadThemeMode()).thenAnswer((_) async => ThemeMode.system);
+    when(() => storage.loadThemeMode())
+        .thenAnswer((_) async => ThemeMode.system);
     when(() => storage.loadLocale()).thenAnswer((_) async => null);
-    when(() => storage.loadNotificationsEnabled()).thenAnswer((_) async => true);
+    when(() => storage.loadNotificationsEnabled())
+        .thenAnswer((_) async => true);
     when(() => storage.loadLastBackupAt()).thenAnswer((_) async => null);
     when(() => storage.saveLastBackupAt(any())).thenAnswer((_) async {});
-    when(() => telemetry.loadTelemetry()).thenAnswer((_) async => const AutoBackupTelemetry());
-    when(() => validationScheduler.scheduleValidationNow()).thenAnswer((_) async {});
+    when(() => telemetry.loadTelemetry())
+        .thenAnswer((_) async => const AutoBackupTelemetry());
+    when(() => validationScheduler.scheduleValidationNow())
+        .thenAnswer((_) async {});
 
     const preview = [
       BackupFileModel(
@@ -125,8 +160,10 @@ void main() {
       ),
     ];
     when(() => backupRepository.backupNow()).thenAnswer((_) async {});
-    when(() => backupRepository.restorePreview()).thenAnswer((_) async => preview);
-    when(() => backupRepository.restoreFromFile('file-1')).thenAnswer((_) async {});
+    when(() => backupRepository.restorePreview())
+        .thenAnswer((_) async => preview);
+    when(() => backupRepository.restoreFromFile('file-1'))
+        .thenAnswer((_) async {});
 
     await cubit.loadSettings();
     await cubit.backupNow();

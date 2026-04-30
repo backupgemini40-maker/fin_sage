@@ -16,7 +16,7 @@ class PremiumCard extends StatelessWidget {
       curve: Curves.easeOutCubic,
       padding: padding ?? const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(8),
         gradient: LinearGradient(
           colors: [
             primary.withOpacity(0.97),
@@ -28,31 +28,15 @@ class PremiumCard extends StatelessWidget {
         border: Border.all(color: Colors.white.withOpacity(0.22), width: 1.1),
         boxShadow: [
           BoxShadow(
-            color: primary.withOpacity(0.26),
-            blurRadius: 26,
-            offset: const Offset(0, 10),
+            color: primary.withOpacity(0.16),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
-      child: Stack(
-        children: [
-          Positioned(
-            right: -24,
-            top: -28,
-            child: Container(
-              height: 110,
-              width: 110,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.16),
-              ),
-            ),
-          ),
-          DefaultTextStyle.merge(
-            style: const TextStyle(color: Colors.white),
-            child: child,
-          ),
-        ],
+      child: DefaultTextStyle.merge(
+        style: const TextStyle(color: Colors.white),
+        child: child,
       ),
     );
   }

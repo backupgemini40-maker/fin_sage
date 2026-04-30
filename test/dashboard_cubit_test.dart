@@ -1,5 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:fin_sage/data/models/account_model.dart';
 import 'package:fin_sage/data/models/transaction_model.dart';
+import 'package:fin_sage/data/repositories/account_repository.dart';
 import 'package:fin_sage/data/repositories/transaction_repository.dart';
 import 'package:fin_sage/logic/dashboard/dashboard_cubit.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,8 +9,11 @@ import 'package:mocktail/mocktail.dart';
 
 class MockTransactionRepository extends Mock implements TransactionRepository {}
 
+class MockAccountRepository extends Mock implements AccountRepository {}
+
 void main() {
   late MockTransactionRepository repository;
+  late MockAccountRepository accountRepository;
 
   final now = DateTime.now();
   final items = [
@@ -18,6 +23,7 @@ void main() {
       amount: 15000000,
       date: DateTime(now.year, now.month, 2),
       categoryId: 1,
+      accountId: 1,
       type: TransactionType.income,
     ),
     TransactionModel(
@@ -26,6 +32,7 @@ void main() {
       amount: 550000,
       date: DateTime(now.year, now.month, 3),
       categoryId: 1,
+      accountId: 1,
       type: TransactionType.expense,
     ),
     TransactionModel(
@@ -34,12 +41,26 @@ void main() {
       amount: 250000,
       date: DateTime(now.year, now.month == 1 ? 12 : now.month - 1, 28),
       categoryId: 1,
+      accountId: 1,
       type: TransactionType.expense,
+    ),
+  ];
+  const accounts = [
+    AccountModel(
+      id: 1,
+      name: 'Primary',
+      type: 'Cash',
+      balance: 14450000,
+      colorHex: '#4F8FC0',
+      icon: 'account_balance_wallet',
     ),
   ];
 
   setUp(() {
     repository = MockTransactionRepository();
+    accountRepository = MockAccountRepository();
+    when(() => accountRepository.getAccounts())
+        .thenAnswer((_) async => accounts);
   });
 
   blocTest<DashboardCubit, DashboardState>(
@@ -50,7 +71,7 @@ void main() {
             'expense': 550000,
           });
       when(() => repository.fetchTransactions()).thenAnswer((_) async => items);
-      return DashboardCubit(repository);
+      return DashboardCubit(repository, accountRepository);
     },
     act: (cubit) => cubit.loadOverview(),
     expect: () => [
@@ -59,25 +80,31 @@ void main() {
           .having((s) => s.loading, 'loading', false)
           .having((s) => s.income, 'income', 15000000)
           .having((s) => s.expense, 'expense', 550000)
+          .having((s) => s.totalBalance, 'total balance', 14450000)
+          .having((s) => s.accounts, 'accounts', accounts)
           .having((s) => s.recentTransactions.length, 'recent count', 3)
           .having((s) => s.monthlyTransactionCount, 'monthly count', 2)
           .having((s) => s.balanceTrend.length, 'trend points', 2)
-          .having((s) => s.balanceTrend.first.balance, 'first trend balance', 15000000)
-          .having((s) => s.balanceTrend.last.balance, 'last trend balance', 14450000),
+          .having((s) => s.balanceTrend.first.balance, 'first trend balance',
+              15000000)
+          .having((s) => s.balanceTrend.last.balance, 'last trend balance',
+              14450000),
     ],
   );
 
   blocTest<DashboardCubit, DashboardState>(
     'loadOverview emits error state when repository throws',
     build: () {
-      when(() => repository.monthlySummary()).thenThrow(Exception('summary failed'));
+      when(() => repository.monthlySummary())
+          .thenThrow(Exception('summary failed'));
       when(() => repository.fetchTransactions()).thenAnswer((_) async => items);
-      return DashboardCubit(repository);
+      return DashboardCubit(repository, accountRepository);
     },
     act: (cubit) => cubit.loadOverview(),
     expect: () => [
       const DashboardState(loading: true),
-      isA<DashboardState>().having((s) => s.error, 'error', contains('summary failed')),
+      isA<DashboardState>()
+          .having((s) => s.error, 'error', contains('summary failed')),
     ],
   );
 }

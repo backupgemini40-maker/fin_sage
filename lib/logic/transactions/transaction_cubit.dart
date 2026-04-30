@@ -1,7 +1,9 @@
 import 'package:equatable/equatable.dart';
 import 'package:fin_sage/core/errors/error_mapper.dart';
+import 'package:fin_sage/data/models/account_model.dart';
 import 'package:fin_sage/data/models/category_model.dart';
 import 'package:fin_sage/data/models/transaction_model.dart';
+import 'package:fin_sage/data/repositories/account_repository.dart';
 import 'package:fin_sage/data/repositories/transaction_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -12,6 +14,7 @@ class TransactionState extends Equatable {
     this.loading = false,
     this.items = const [],
     this.categories = const [],
+    this.accounts = const [],
     this.searchQuery = '',
     this.filter = TransactionFilter.all,
     this.error,
@@ -20,6 +23,7 @@ class TransactionState extends Equatable {
   final bool loading;
   final List<TransactionModel> items;
   final List<CategoryModel> categories;
+  final List<AccountModel> accounts;
   final String searchQuery;
   final TransactionFilter filter;
   final String? error;
@@ -46,6 +50,7 @@ class TransactionState extends Equatable {
     bool? loading,
     List<TransactionModel>? items,
     List<CategoryModel>? categories,
+    List<AccountModel>? accounts,
     String? searchQuery,
     TransactionFilter? filter,
     String? error,
@@ -54,6 +59,7 @@ class TransactionState extends Equatable {
       loading: loading ?? this.loading,
       items: items ?? this.items,
       categories: categories ?? this.categories,
+      accounts: accounts ?? this.accounts,
       searchQuery: searchQuery ?? this.searchQuery,
       filter: filter ?? this.filter,
       error: error,
@@ -62,13 +68,14 @@ class TransactionState extends Equatable {
 
   @override
   List<Object?> get props =>
-      [loading, items, categories, searchQuery, filter, error];
+      [loading, items, categories, accounts, searchQuery, filter, error];
 }
 
 class TransactionCubit extends Cubit<TransactionState> {
-  TransactionCubit(this._repo) : super(const TransactionState());
+  TransactionCubit(this._repo, this._accountRepository) : super(const TransactionState());
 
   final TransactionRepository _repo;
+  final AccountRepository _accountRepository;
 
   Future<void> loadTransactions() async {
     emit(state.copyWith(loading: true, error: null));
@@ -76,12 +83,14 @@ class TransactionCubit extends Cubit<TransactionState> {
       final result = await Future.wait([
         _repo.fetchTransactions(),
         _repo.fetchCategories(),
+        _accountRepository.getAccounts(),
       ]);
       emit(
         state.copyWith(
           loading: false,
           items: result[0] as List<TransactionModel>,
           categories: result[1] as List<CategoryModel>,
+          accounts: result[2] as List<AccountModel>,
         ),
       );
     } catch (e) {
@@ -93,8 +102,7 @@ class TransactionCubit extends Cubit<TransactionState> {
     emit(state.copyWith(error: null));
     try {
       await _repo.saveTransaction(model);
-      final items = await _repo.fetchTransactions();
-      emit(state.copyWith(items: items));
+      await loadTransactions();
     } catch (e) {
       emit(state.copyWith(error: mapErrorMessage(e)));
     }
@@ -104,8 +112,7 @@ class TransactionCubit extends Cubit<TransactionState> {
     emit(state.copyWith(error: null));
     try {
       await _repo.updateTransaction(model);
-      final items = await _repo.fetchTransactions();
-      emit(state.copyWith(items: items));
+      await loadTransactions();
     } catch (e) {
       emit(state.copyWith(error: mapErrorMessage(e)));
     }
@@ -115,9 +122,7 @@ class TransactionCubit extends Cubit<TransactionState> {
     emit(state.copyWith(error: null));
     try {
       await _repo.deleteTransaction(id);
-      final updated =
-          state.items.where((tx) => tx.id != id).toList(growable: false);
-      emit(state.copyWith(items: updated));
+      await loadTransactions();
     } catch (e) {
       emit(state.copyWith(error: mapErrorMessage(e)));
     }

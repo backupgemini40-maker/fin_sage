@@ -44,6 +44,7 @@ class _ReportsPageState extends State<ReportsPage> {
       csvHeaderType: l10n.reportCsvHeaderType,
       csvHeaderDate: l10n.reportCsvHeaderDate,
       csvHeaderCategoryId: l10n.reportCsvHeaderCategoryId,
+      csvHeaderAccountId: l10n.reportCsvHeaderAccountId,
       transactionTypeIncome: l10n.incomeType,
       transactionTypeExpense: l10n.expenseType,
       pdfDefaultTitle: l10n.reportPdfDefaultTitle,

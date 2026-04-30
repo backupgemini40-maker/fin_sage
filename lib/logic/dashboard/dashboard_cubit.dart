@@ -2,7 +2,9 @@ import 'dart:collection';
 
 import 'package:equatable/equatable.dart';
 import 'package:fin_sage/core/errors/error_mapper.dart';
+import 'package:fin_sage/data/models/account_model.dart';
 import 'package:fin_sage/data/models/transaction_model.dart';
+import 'package:fin_sage/data/repositories/account_repository.dart';
 import 'package:fin_sage/data/repositories/transaction_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -24,7 +26,9 @@ class DashboardState extends Equatable {
     this.loading = false,
     this.income = 0,
     this.expense = 0,
+    this.totalBalance = 0,
     this.recentTransactions = const [],
+    this.accounts = const [],
     this.balanceTrend = const [],
     this.monthlyTransactionCount = 0,
     this.error,
@@ -33,18 +37,20 @@ class DashboardState extends Equatable {
   final bool loading;
   final double income;
   final double expense;
+  final double totalBalance;
   final List<TransactionModel> recentTransactions;
+  final List<AccountModel> accounts;
   final List<BalanceTrendPoint> balanceTrend;
   final int monthlyTransactionCount;
   final String? error;
-
-  double get balance => income - expense;
 
   DashboardState copyWith({
     bool? loading,
     double? income,
     double? expense,
+    double? totalBalance,
     List<TransactionModel>? recentTransactions,
+    List<AccountModel>? accounts,
     List<BalanceTrendPoint>? balanceTrend,
     int? monthlyTransactionCount,
     String? error,
@@ -53,9 +59,12 @@ class DashboardState extends Equatable {
       loading: loading ?? this.loading,
       income: income ?? this.income,
       expense: expense ?? this.expense,
+      totalBalance: totalBalance ?? this.totalBalance,
       recentTransactions: recentTransactions ?? this.recentTransactions,
+      accounts: accounts ?? this.accounts,
       balanceTrend: balanceTrend ?? this.balanceTrend,
-      monthlyTransactionCount: monthlyTransactionCount ?? this.monthlyTransactionCount,
+      monthlyTransactionCount:
+          monthlyTransactionCount ?? this.monthlyTransactionCount,
       error: error,
     );
   }
@@ -65,7 +74,9 @@ class DashboardState extends Equatable {
         loading,
         income,
         expense,
+        totalBalance,
         recentTransactions,
+        accounts,
         balanceTrend,
         monthlyTransactionCount,
         error,
@@ -73,9 +84,11 @@ class DashboardState extends Equatable {
 }
 
 class DashboardCubit extends Cubit<DashboardState> {
-  DashboardCubit(this._repo) : super(const DashboardState());
+  DashboardCubit(this._repo, this._accountRepository)
+      : super(const DashboardState());
 
   final TransactionRepository _repo;
+  final AccountRepository _accountRepository;
 
   Future<void> loadOverview() async {
     emit(state.copyWith(loading: true, error: null));
@@ -83,9 +96,15 @@ class DashboardCubit extends Cubit<DashboardState> {
       final result = await Future.wait([
         _repo.monthlySummary(),
         _repo.fetchTransactions(),
+        _accountRepository.getAccounts(),
       ]);
       final summary = result[0] as Map<String, double>;
       final transactions = result[1] as List<TransactionModel>;
+      final accounts = result[2] as List<AccountModel>;
+
+      final totalBalance =
+          accounts.fold<double>(0, (sum, account) => sum + account.balance);
+
       final now = DateTime.now();
       final monthlyTransactions = transactions
           .where((tx) => tx.date.year == now.year && tx.date.month == now.month)
@@ -98,7 +117,9 @@ class DashboardCubit extends Cubit<DashboardState> {
           loading: false,
           income: summary['income'] ?? 0,
           expense: summary['expense'] ?? 0,
+          totalBalance: totalBalance,
           recentTransactions: transactions.take(5).toList(),
+          accounts: accounts.take(4).toList(),
           balanceTrend: balanceTrend,
           monthlyTransactionCount: monthlyCount,
         ),
@@ -108,7 +129,8 @@ class DashboardCubit extends Cubit<DashboardState> {
     }
   }
 
-  List<BalanceTrendPoint> _buildMonthlyBalanceTrend(List<TransactionModel> monthlyTransactions) {
+  List<BalanceTrendPoint> _buildMonthlyBalanceTrend(
+      List<TransactionModel> monthlyTransactions) {
     if (monthlyTransactions.isEmpty) {
       return const [];
     }

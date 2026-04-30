@@ -8,19 +8,25 @@ import 'package:fin_sage/data/datasources/local/settings_storage.dart';
 import 'package:fin_sage/data/datasources/local/auto_backup_telemetry_storage.dart';
 import 'package:fin_sage/data/datasources/remote/google_drive_datasource.dart';
 import 'package:fin_sage/core/constants/google_auth_config.dart';
+import 'package:fin_sage/data/repositories/account_repository.dart';
 import 'package:fin_sage/data/repositories/auth_repository.dart';
 import 'package:fin_sage/data/repositories/backup_repository.dart';
 import 'package:fin_sage/data/repositories/budget_repository.dart';
+import 'package:fin_sage/data/repositories/impl/account_repository_impl.dart';
 import 'package:fin_sage/data/repositories/impl/auth_repository_impl.dart';
 import 'package:fin_sage/data/repositories/impl/backup_repository_impl.dart';
 import 'package:fin_sage/data/repositories/impl/budget_repository_impl.dart';
+import 'package:fin_sage/data/repositories/impl/recurring_transaction_repository_impl.dart';
 import 'package:fin_sage/data/repositories/impl/transaction_repository_impl.dart';
+import 'package:fin_sage/data/repositories/recurring_transaction_repository.dart';
 import 'package:fin_sage/data/repositories/transaction_repository.dart';
 import 'package:fin_sage/features/budgets/budget_notification_service.dart';
 import 'package:fin_sage/features/settings/backup_scheduler.dart';
+import 'package:fin_sage/logic/accounts/account_cubit.dart';
 import 'package:fin_sage/logic/auth/auth_cubit.dart';
 import 'package:fin_sage/logic/budgets/budget_cubit.dart';
 import 'package:fin_sage/logic/dashboard/dashboard_cubit.dart';
+import 'package:fin_sage/logic/recurring_transactions/recurring_transaction_cubit.dart';
 import 'package:fin_sage/logic/reports/report_cubit.dart';
 import 'package:fin_sage/logic/settings/settings_cubit.dart';
 import 'package:fin_sage/logic/transactions/transaction_cubit.dart';
@@ -37,7 +43,8 @@ class ServiceLocator {
     final prefs = await SharedPreferences.getInstance();
 
     sl.registerLazySingleton(() => const FlutterSecureStorage());
-    sl.registerLazySingleton<SettingsStorage>(() => SharedPrefsSettingsStorage(prefs));
+    sl.registerLazySingleton<SettingsStorage>(
+        () => SharedPrefsSettingsStorage(prefs));
     sl.registerLazySingleton<AutoBackupTelemetryStorage>(
       () => SharedPrefsAutoBackupTelemetryStorage(prefs),
     );
@@ -64,15 +71,24 @@ class ServiceLocator {
     sl.registerLazySingleton(() => GoogleDriveDataSource(sl()));
 
     sl.registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(sl()));
-    sl.registerLazySingleton<TransactionRepository>(() => TransactionRepositoryImpl(sl(), sl()));
-    sl.registerLazySingleton<BudgetRepository>(() => BudgetRepositoryImpl(sl()));
-    sl.registerLazySingleton<BackupRepository>(() => BackupRepositoryImpl(sl(), sl()));
+    sl.registerLazySingleton<TransactionRepository>(
+        () => TransactionRepositoryImpl(sl(), sl()));
+    sl.registerLazySingleton<BudgetRepository>(
+        () => BudgetRepositoryImpl(sl()));
+    sl.registerLazySingleton<BackupRepository>(
+        () => BackupRepositoryImpl(sl(), sl()));
+    sl.registerLazySingleton<AccountRepository>(
+        () => AccountRepositoryImpl(sl()));
+    sl.registerLazySingleton<RecurringTransactionRepository>(
+        () => RecurringTransactionRepositoryImpl(sl()));
 
     sl.registerFactory(() => AuthCubit(sl()));
-    sl.registerFactory(() => DashboardCubit(sl()));
-    sl.registerFactory(() => TransactionCubit(sl()));
+    sl.registerFactory(() => DashboardCubit(sl(), sl()));
+    sl.registerFactory(() => TransactionCubit(sl(), sl()));
     sl.registerFactory(() => BudgetCubit(sl(), sl(), sl()));
     sl.registerFactory(() => ReportCubit());
     sl.registerFactory(() => SettingsCubit(sl(), sl(), sl(), sl(), sl()));
+    sl.registerFactory(() => AccountCubit(sl()));
+    sl.registerFactory(() => RecurringTransactionCubit(sl()));
   }
 }

@@ -13,12 +13,12 @@ class AppTheme {
         fontSize: 34,
         fontWeight: FontWeight.w700,
         height: 1.14,
-        letterSpacing: -0.6),
+        letterSpacing: 0),
     headlineMedium: TextStyle(
         fontSize: 26,
         fontWeight: FontWeight.w700,
         height: 1.2,
-        letterSpacing: -0.4),
+        letterSpacing: 0),
     titleLarge:
         TextStyle(fontSize: 20, fontWeight: FontWeight.w700, height: 1.24),
     titleMedium:
@@ -27,10 +27,10 @@ class AppTheme {
         TextStyle(fontSize: 16, fontWeight: FontWeight.w400, height: 1.5),
     bodyMedium:
         TextStyle(fontSize: 14, fontWeight: FontWeight.w400, height: 1.5),
-    labelLarge: TextStyle(
-        fontSize: 14, fontWeight: FontWeight.w700, letterSpacing: 0.2),
-    labelMedium: TextStyle(
-        fontSize: 12, fontWeight: FontWeight.w600, letterSpacing: 0.2),
+    labelLarge:
+        TextStyle(fontSize: 14, fontWeight: FontWeight.w700, letterSpacing: 0),
+    labelMedium:
+        TextStyle(fontSize: 12, fontWeight: FontWeight.w600, letterSpacing: 0),
   );
 
   static ThemeData get light {
@@ -78,11 +78,11 @@ class AppTheme {
         margin: EdgeInsets.zero,
         elevation: 0,
         color: Colors.white.withOpacity(0.86),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         surfaceTintColor: Colors.white,
       ),
       chipTheme: ChipThemeData(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         side: BorderSide(color: deepTeal.withOpacity(0.12)),
         selectedColor: deepTeal.withOpacity(0.16),
         backgroundColor: Colors.white.withOpacity(0.74),
@@ -94,22 +94,19 @@ class AppTheme {
           backgroundColor: deepTeal,
           foregroundColor: Colors.white,
           minimumSize: const Size.fromHeight(52),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: const Size.fromHeight(52),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           minimumSize: const Size.fromHeight(52),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           side: BorderSide(color: deepTeal.withOpacity(0.26)),
         ),
       ),
@@ -119,15 +116,15 @@ class AppTheme {
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: deepTeal.withOpacity(0.14), width: 1.2),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: deepTeal.withOpacity(0.14), width: 1.2),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: deepTeal, width: 1.5),
         ),
       ),
@@ -178,10 +175,10 @@ class AppTheme {
         margin: EdgeInsets.zero,
         elevation: 0,
         color: darkCard.withOpacity(0.9),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
       chipTheme: ChipThemeData(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         side: BorderSide(color: Colors.white.withOpacity(0.18)),
         selectedColor: seaGlass.withOpacity(0.32),
         backgroundColor: darkCard.withOpacity(0.8),
@@ -194,33 +191,31 @@ class AppTheme {
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(8),
           borderSide:
               BorderSide(color: Colors.white.withOpacity(0.16), width: 1.2),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(8),
           borderSide:
               BorderSide(color: Colors.white.withOpacity(0.16), width: 1.2),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: seaGlass, width: 1.5),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           minimumSize: const Size.fromHeight(52),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           side: BorderSide(color: Colors.white.withOpacity(0.22)),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: const Size.fromHeight(52),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
       floatingActionButtonTheme: const FloatingActionButtonThemeData(

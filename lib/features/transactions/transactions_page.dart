@@ -8,6 +8,7 @@ import 'package:fin_sage/core/widgets/atmospheric_scaffold_body.dart';
 import 'package:fin_sage/core/widgets/empty_state_panel.dart';
 import 'package:fin_sage/core/widgets/loading_skeleton.dart';
 import 'package:fin_sage/core/widgets/section_reveal.dart';
+import 'package:fin_sage/data/models/account_model.dart';
 import 'package:fin_sage/data/models/category_model.dart';
 import 'package:fin_sage/data/models/transaction_model.dart';
 import 'package:fin_sage/l10n/generated/app_localizations.dart';
@@ -207,6 +208,8 @@ class TransactionsPage extends StatelessWidget {
                                 : Theme.of(context).colorScheme.error;
                             final categoryName = _categoryNameById(
                                 state.categories, tx.categoryId);
+                            final accountName =
+                                _accountNameById(state.accounts, tx.accountId);
 
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 10),
@@ -222,7 +225,7 @@ class TransactionsPage extends StatelessWidget {
                                   ),
                                   title: Text(tx.title),
                                   subtitle: Text(
-                                    '${DateFormat.yMMMd(locale).format(tx.date)} • $categoryName • ${isIncome ? l10n.incomeType : l10n.expenseType}',
+                                    '${DateFormat.yMMMd(locale).format(tx.date)} • $categoryName • $accountName • ${isIncome ? l10n.incomeType : l10n.expenseType}',
                                   ),
                                   trailing: Row(
                                     mainAxisSize: MainAxisSize.min,
@@ -309,6 +312,7 @@ class TransactionsPage extends StatelessWidget {
     final cubit = context.read<TransactionCubit>();
     final state = context.read<TransactionCubit>().state;
     var categories = List<CategoryModel>.from(state.categories);
+    var accounts = List<AccountModel>.from(state.accounts);
     final hasExistingCategory = existing != null &&
         categories.any((category) => category.id == existing.categoryId);
     int selectedCategoryId = hasExistingCategory
@@ -316,6 +320,13 @@ class TransactionsPage extends StatelessWidget {
         : (categories.isNotEmpty
             ? (categories.first.id ?? 1)
             : (existing?.categoryId ?? 1));
+    final hasExistingAccount = existing != null &&
+        accounts.any((account) => account.id == existing.accountId);
+    int selectedAccountId = hasExistingAccount
+        ? existing.accountId
+        : (accounts.isNotEmpty
+            ? (accounts.first.id ?? 1)
+            : (existing?.accountId ?? 1));
 
     await showModalBottomSheet<void>(
       context: context,
@@ -353,6 +364,28 @@ class TransactionsPage extends StatelessWidget {
                         return _errorFromCode(l10n, code);
                       },
                     ),
+                    const SizedBox(height: 12),
+                    if (accounts.isNotEmpty)
+                      DropdownButtonFormField<int>(
+                        value: selectedAccountId,
+                        decoration:
+                            InputDecoration(labelText: l10n.accountLabel),
+                        items: accounts
+                            .map(
+                              (account) => DropdownMenuItem<int>(
+                                value: account.id ?? 1,
+                                child: Text(account.name),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) {
+                          if (value != null) {
+                            setState(() => selectedAccountId = value);
+                          }
+                        },
+                      )
+                    else
+                      const SizedBox.shrink(), // TODO: Handle no accounts
                     const SizedBox(height: 12),
                     Align(
                       alignment: Alignment.centerLeft,
@@ -496,6 +529,7 @@ class TransactionsPage extends StatelessWidget {
                           amount: parsedAmount,
                           date: selectedDate,
                           categoryId: selectedCategoryId,
+                          accountId: selectedAccountId,
                           type: selectedType,
                         );
                         await HapticFeedback.lightImpact();
@@ -555,6 +589,15 @@ class TransactionsPage extends StatelessWidget {
     for (final category in categories) {
       if (category.id == id) {
         return category.name;
+      }
+    }
+    return '#$id';
+  }
+
+  String _accountNameById(List<AccountModel> accounts, int id) {
+    for (final account in accounts) {
+      if (account.id == id) {
+        return account.name;
       }
     }
     return '#$id';

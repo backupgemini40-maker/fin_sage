@@ -13,8 +13,10 @@ import 'package:fin_sage/core/widgets/atmospheric_scaffold_body.dart';
 import 'package:fin_sage/core/widgets/app_bottom_nav.dart';
 import 'package:fin_sage/core/widgets/empty_state_panel.dart';
 import 'package:fin_sage/core/widgets/loading_skeleton.dart';
+import 'package:fin_sage/core/widgets/icon_mapper.dart';
 import 'package:fin_sage/core/widgets/premium_card.dart';
 import 'package:fin_sage/core/widgets/section_reveal.dart';
+import 'package:fin_sage/data/models/account_model.dart';
 import 'package:fin_sage/data/models/transaction_model.dart';
 import 'package:fin_sage/l10n/generated/app_localizations.dart';
 import 'package:fin_sage/logic/budgets/budget_cubit.dart';
@@ -101,14 +103,14 @@ class DashboardPage extends StatelessWidget {
                               child: Semantics(
                                 container: true,
                                 label:
-                                    '${l10n.totalBalance}: ${state.balance.toCurrency(locale)}. ${l10n.monthlyIncome}: ${state.income.toCurrency(locale)}. ${l10n.monthlyExpense}: ${state.expense.toCurrency(locale)}.',
+                                    '${l10n.totalBalance}: ${state.totalBalance.toCurrency(locale)}. ${l10n.monthlyIncome}: ${state.income.toCurrency(locale)}. ${l10n.monthlyExpense}: ${state.expense.toCurrency(locale)}.',
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(l10n.totalBalance),
                                     const SizedBox(height: 8),
                                     Text(
-                                      state.balance.toCurrency(locale),
+                                      state.totalBalance.toCurrency(locale),
                                       textScaler:
                                           MediaQuery.textScalerOf(context),
                                       style: Theme.of(context)
@@ -183,6 +185,17 @@ class DashboardPage extends StatelessWidget {
                             ),
                           ],
                           const SizedBox(height: 16),
+                          _CashFlowHealthCard(
+                            income: state.income,
+                            expense: state.expense,
+                            locale: locale,
+                          ),
+                          const SizedBox(height: 16),
+                          _AccountSnapshotCard(
+                            accounts: state.accounts,
+                            locale: locale,
+                          ),
+                          const SizedBox(height: 16),
                           Semantics(
                             container: true,
                             label: l10n.balanceTrendChartLabel,
@@ -244,6 +257,147 @@ class DashboardPage extends StatelessWidget {
                 },
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CashFlowHealthCard extends StatelessWidget {
+  const _CashFlowHealthCard({
+    required this.income,
+    required this.expense,
+    required this.locale,
+  });
+
+  final double income;
+  final double expense;
+  final String locale;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final net = income - expense;
+    final savingsRate = income <= 0 ? 0 : (net / income).clamp(-9.99, 9.99);
+    final isPositive = net >= 0;
+
+    return SectionReveal(
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    isPositive
+                        ? Icons.trending_up_rounded
+                        : Icons.trending_down_rounded,
+                    color: isPositive
+                        ? Colors.green.shade700
+                        : Theme.of(context).colorScheme.error,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      l10n.cashFlowHealthTitle,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text('${l10n.monthlyNetCashFlow}: ${net.toCurrency(locale)}'),
+              const SizedBox(height: 4),
+              Text(
+                '${l10n.savingsRateLabel}: ${(savingsRate * 100).toStringAsFixed(0)}%',
+              ),
+              const SizedBox(height: 8),
+              Text(
+                isPositive
+                    ? l10n.positiveCashFlowInsight
+                    : l10n.negativeCashFlowInsight,
+                style: TextStyle(
+                  color: isPositive
+                      ? Colors.green.shade700
+                      : Theme.of(context).colorScheme.error,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AccountSnapshotCard extends StatelessWidget {
+  const _AccountSnapshotCard({
+    required this.accounts,
+    required this.locale,
+  });
+
+  final List<AccountModel> accounts;
+  final String locale;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
+    return SectionReveal(
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.account_balance_wallet_outlined),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      l10n.dashboardAccountSnapshot,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () =>
+                        Navigator.pushNamed(context, AppRoutes.accounts),
+                    child: Text(l10n.accountsTitle),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              if (accounts.isEmpty)
+                Text(l10n.emptyAccounts)
+              else
+                ...accounts.map(
+                  (account) => Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Row(
+                      children: [
+                        Icon(mapStringToIconData(account.icon), size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            account.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Text(
+                          account.balance.toCurrency(locale),
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
       ),

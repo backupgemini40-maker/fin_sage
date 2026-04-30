@@ -23,7 +23,10 @@ class AppBottomNav extends StatelessWidget {
         ),
       ),
       child: NavigationBar(
-        height: 74,
+        height: MediaQuery.sizeOf(context).width < 390 ? 66 : 72,
+        labelBehavior: MediaQuery.sizeOf(context).width < 390
+            ? NavigationDestinationLabelBehavior.onlyShowSelected
+            : NavigationDestinationLabelBehavior.alwaysShow,
         selectedIndex: selectedIndex,
         destinations: [
           NavigationDestination(
@@ -32,6 +35,9 @@ class AppBottomNav extends StatelessWidget {
           NavigationDestination(
               icon: const Icon(Icons.receipt_long_outlined),
               label: l10n.transactionsTitle),
+          NavigationDestination(
+              icon: const Icon(Icons.account_balance_wallet_outlined),
+              label: l10n.accountsTitle),
           NavigationDestination(
               icon: const Icon(Icons.pie_chart_outline),
               label: l10n.budgetsTitle),
@@ -66,12 +72,14 @@ class AppBottomNav extends StatelessWidget {
         return 0;
       case AppRoutes.transactions:
         return 1;
-      case AppRoutes.budgets:
+      case AppRoutes.accounts:
         return 2;
-      case AppRoutes.reports:
+      case AppRoutes.budgets:
         return 3;
-      case AppRoutes.settingsRoute:
+      case AppRoutes.reports:
         return 4;
+      case AppRoutes.settingsRoute:
+        return 5;
       default:
         return 0;
     }
@@ -84,10 +92,12 @@ class AppBottomNav extends StatelessWidget {
       case 1:
         return AppRoutes.transactions;
       case 2:
-        return AppRoutes.budgets;
+        return AppRoutes.accounts;
       case 3:
-        return AppRoutes.reports;
+        return AppRoutes.budgets;
       case 4:
+        return AppRoutes.reports;
+      case 5:
         return AppRoutes.settingsRoute;
       default:
         return AppRoutes.dashboard;

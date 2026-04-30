@@ -9,6 +9,7 @@ class TransactionModel extends Equatable {
     required this.amount,
     required this.date,
     required this.categoryId,
+    required this.accountId,
     required this.type,
   });
 
@@ -17,6 +18,7 @@ class TransactionModel extends Equatable {
   final double amount;
   final DateTime date;
   final int categoryId;
+  final int accountId;
   final TransactionType type;
 
   Map<String, dynamic> toMap() {
@@ -26,6 +28,7 @@ class TransactionModel extends Equatable {
       'amount': amount,
       'date': date.toIso8601String(),
       'category_id': categoryId,
+      'account_id': accountId,
       'type': type.name,
     };
   }
@@ -37,10 +40,12 @@ class TransactionModel extends Equatable {
       amount: (map['amount'] as num).toDouble(),
       date: DateTime.parse(map['date'] as String),
       categoryId: map['category_id'] as int,
+      accountId: map['account_id'] as int,
       type: TransactionType.values.byName(map['type'] as String),
     );
   }
 
   @override
-  List<Object?> get props => [id, title, amount, date, categoryId, type];
+  List<Object?> get props =>
+      [id, title, amount, date, categoryId, accountId, type];
 }

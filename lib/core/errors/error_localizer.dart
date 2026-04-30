@@ -7,7 +7,13 @@ String localizeErrorMessage(AppLocalizations l10n, String rawMessage) {
     AppErrorCodes.databaseOpenFailed => l10n.databaseOpenFailed,
     AppErrorCodes.categoryAlreadyExists => l10n.categoryExists,
     AppErrorCodes.categoryInUse => l10n.categoryInUse,
-    AppErrorCodes.defaultCategoryArchiveBlocked => l10n.defaultCategoryArchiveBlocked,
+    AppErrorCodes.defaultCategoryArchiveBlocked =>
+      l10n.defaultCategoryArchiveBlocked,
+    AppErrorCodes.accountAlreadyExists => l10n.accountAlreadyExists,
+    AppErrorCodes.accountNotFound => l10n.accountNotFound,
+    AppErrorCodes.accountBalanceNotZero => l10n.accountBalanceNotZero,
+    AppErrorCodes.defaultAccountArchiveBlocked =>
+      l10n.defaultAccountArchiveBlocked,
     AppErrorCodes.backupInvalidFile => l10n.backupInvalidFile,
     AppErrorCodes.backupChecksumMismatch => l10n.backupChecksumMismatch,
     AppErrorCodes.googleAuthHeadersUnavailable => l10n.googleAuthUnavailable,

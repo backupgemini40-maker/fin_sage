@@ -1,9 +1,11 @@
 import 'package:fin_sage/data/datasources/local/auto_backup_telemetry_storage.dart';
 import 'package:fin_sage/data/datasources/local/local_database_datasource.dart';
 import 'package:fin_sage/data/datasources/local/settings_storage.dart';
+import 'package:fin_sage/data/models/account_model.dart';
 import 'package:fin_sage/data/models/backup_file_model.dart';
 import 'package:fin_sage/data/models/category_model.dart';
 import 'package:fin_sage/data/models/transaction_model.dart';
+import 'package:fin_sage/data/repositories/account_repository.dart';
 import 'package:fin_sage/data/repositories/backup_repository.dart';
 import 'package:fin_sage/data/repositories/budget_repository.dart';
 import 'package:fin_sage/data/repositories/transaction_repository.dart';
@@ -30,18 +32,25 @@ import 'package:mocktail/mocktail.dart';
 
 class MockTransactionRepository extends Mock implements TransactionRepository {}
 
+class MockAccountRepository extends Mock implements AccountRepository {}
+
 class MockBudgetRepository extends Mock implements BudgetRepository {}
 
 class MockBackupRepository extends Mock implements BackupRepository {}
 
 class MockSettingsStorage extends Mock implements SettingsStorage {}
 
-class MockBudgetNotificationService extends Mock implements BudgetNotificationService {}
+class MockBudgetNotificationService extends Mock
+    implements BudgetNotificationService {}
 
-class MockLocalDatabaseDataSource extends Mock implements LocalDatabaseDataSource {}
+class MockLocalDatabaseDataSource extends Mock
+    implements LocalDatabaseDataSource {}
 
-class MockAutoBackupTelemetryStorage extends Mock implements AutoBackupTelemetryStorage {}
-class MockAutoBackupValidationScheduler extends Mock implements AutoBackupValidationScheduler {}
+class MockAutoBackupTelemetryStorage extends Mock
+    implements AutoBackupTelemetryStorage {}
+
+class MockAutoBackupValidationScheduler extends Mock
+    implements AutoBackupValidationScheduler {}
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -54,22 +63,48 @@ void main() {
         amount: 1,
         date: DateTime(2026, 1, 1),
         categoryId: 1,
+        accountId: 1,
         type: TransactionType.expense,
       ),
     );
   });
 
-  testWidgets('transactions page should submit create transaction form', (tester) async {
+  const testAccounts = [
+    AccountModel(
+      id: 1,
+      name: 'Primary',
+      type: 'Cash',
+      balance: 0,
+      colorHex: '#4F8FC0',
+      icon: 'account_balance_wallet',
+    ),
+  ];
+
+  testWidgets('transactions page should submit create transaction form',
+      (tester) async {
     final txRepo = MockTransactionRepository();
-    final txCubit = TransactionCubit(txRepo);
+    final accountRepo = MockAccountRepository();
+    final txCubit = TransactionCubit(txRepo, accountRepo);
     addTearDown(txCubit.close);
 
     const categories = [
-      CategoryModel(id: 1, name: 'General', colorHex: '#0D3B66', icon: 'wallet'),
+      CategoryModel(
+          id: 1, name: 'General', colorHex: '#0D3B66', icon: 'wallet'),
+    ];
+    const accounts = [
+      AccountModel(
+        id: 1,
+        name: 'Primary',
+        type: 'Cash',
+        balance: 0,
+        colorHex: '#4F8FC0',
+        icon: 'account_balance_wallet',
+      ),
     ];
 
     when(() => txRepo.fetchTransactions()).thenAnswer((_) async => []);
     when(() => txRepo.fetchCategories()).thenAnswer((_) async => categories);
+    when(() => accountRepo.getAccounts()).thenAnswer((_) async => accounts);
     when(() => txRepo.saveTransaction(any())).thenAnswer((_) async {});
 
     await txCubit.loadTransactions();
@@ -97,8 +132,10 @@ void main() {
     await tester.tap(find.text('Add Transaction'));
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.widgetWithText(TextFormField, 'Title'), 'Coffee');
-    await tester.enterText(find.widgetWithText(TextFormField, 'Amount'), '25000');
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Title'), 'Coffee');
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Amount'), '25000');
 
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
@@ -106,21 +143,25 @@ void main() {
     verify(() => txRepo.saveTransaction(any())).called(1);
   });
 
-  testWidgets('settings restore should refresh transaction, budget, and dashboard data', (tester) async {
+  testWidgets(
+      'settings restore should refresh transaction, budget, and dashboard data',
+      (tester) async {
     final txRepo = MockTransactionRepository();
     final budgetRepo = MockBudgetRepository();
     final backupRepo = MockBackupRepository();
+    final accountRepo = MockAccountRepository();
     final settingsStorage = MockSettingsStorage();
     final localDb = MockLocalDatabaseDataSource();
     final notificationService = MockBudgetNotificationService();
     final telemetryStorage = MockAutoBackupTelemetryStorage();
     final validationScheduler = MockAutoBackupValidationScheduler();
 
-    final txCubit = TransactionCubit(txRepo);
-    final budgetCubit = BudgetCubit(budgetRepo, notificationService, settingsStorage);
-    final dashboardCubit = DashboardCubit(txRepo);
-    final settingsCubit =
-        SettingsCubit(backupRepo, settingsStorage, localDb, telemetryStorage, validationScheduler);
+    final txCubit = TransactionCubit(txRepo, accountRepo);
+    final budgetCubit =
+        BudgetCubit(budgetRepo, notificationService, settingsStorage);
+    final dashboardCubit = DashboardCubit(txRepo, accountRepo);
+    final settingsCubit = SettingsCubit(backupRepo, settingsStorage, localDb,
+        telemetryStorage, validationScheduler);
 
     addTearDown(txCubit.close);
     addTearDown(budgetCubit.close);
@@ -128,19 +169,29 @@ void main() {
     addTearDown(settingsCubit.close);
 
     when(() => txRepo.fetchCategories()).thenAnswer(
-      (_) async => const [CategoryModel(id: 1, name: 'General', colorHex: '#0D3B66', icon: 'wallet')],
+      (_) async => const [
+        CategoryModel(
+            id: 1, name: 'General', colorHex: '#0D3B66', icon: 'wallet')
+      ],
     );
     when(() => txRepo.fetchTransactions()).thenAnswer((_) async => []);
-    when(() => txRepo.monthlySummary()).thenAnswer((_) async => {'income': 0, 'expense': 0});
+    when(() => txRepo.monthlySummary())
+        .thenAnswer((_) async => {'income': 0, 'expense': 0});
+    when(() => accountRepo.getAccounts()).thenAnswer((_) async => testAccounts);
 
     when(() => budgetRepo.fetchBudgets()).thenAnswer((_) async => []);
-    when(() => settingsStorage.loadNotificationsEnabled()).thenAnswer((_) async => true);
+    when(() => settingsStorage.loadNotificationsEnabled())
+        .thenAnswer((_) async => true);
 
-    when(() => settingsStorage.loadThemeMode()).thenAnswer((_) async => ThemeMode.system);
+    when(() => settingsStorage.loadThemeMode())
+        .thenAnswer((_) async => ThemeMode.system);
     when(() => settingsStorage.loadLocale()).thenAnswer((_) async => null);
-    when(() => settingsStorage.loadLastBackupAt()).thenAnswer((_) async => null);
-    when(() => telemetryStorage.loadTelemetry()).thenAnswer((_) async => const AutoBackupTelemetry());
-    when(() => validationScheduler.scheduleValidationNow()).thenAnswer((_) async {});
+    when(() => settingsStorage.loadLastBackupAt())
+        .thenAnswer((_) async => null);
+    when(() => telemetryStorage.loadTelemetry())
+        .thenAnswer((_) async => const AutoBackupTelemetry());
+    when(() => validationScheduler.scheduleValidationNow())
+        .thenAnswer((_) async {});
 
     when(() => backupRepo.restorePreview()).thenAnswer(
       (_) async => const [
@@ -197,21 +248,24 @@ void main() {
     verify(() => txRepo.monthlySummary()).called(greaterThanOrEqualTo(1));
   });
 
-  testWidgets('settings restore should show invalid backup message', (tester) async {
+  testWidgets('settings restore should show invalid backup message',
+      (tester) async {
     final txRepo = MockTransactionRepository();
     final budgetRepo = MockBudgetRepository();
     final backupRepo = MockBackupRepository();
+    final accountRepo = MockAccountRepository();
     final settingsStorage = MockSettingsStorage();
     final localDb = MockLocalDatabaseDataSource();
     final notificationService = MockBudgetNotificationService();
     final telemetryStorage = MockAutoBackupTelemetryStorage();
     final validationScheduler = MockAutoBackupValidationScheduler();
 
-    final txCubit = TransactionCubit(txRepo);
-    final budgetCubit = BudgetCubit(budgetRepo, notificationService, settingsStorage);
-    final dashboardCubit = DashboardCubit(txRepo);
-    final settingsCubit =
-        SettingsCubit(backupRepo, settingsStorage, localDb, telemetryStorage, validationScheduler);
+    final txCubit = TransactionCubit(txRepo, accountRepo);
+    final budgetCubit =
+        BudgetCubit(budgetRepo, notificationService, settingsStorage);
+    final dashboardCubit = DashboardCubit(txRepo, accountRepo);
+    final settingsCubit = SettingsCubit(backupRepo, settingsStorage, localDb,
+        telemetryStorage, validationScheduler);
 
     addTearDown(txCubit.close);
     addTearDown(budgetCubit.close);
@@ -219,19 +273,29 @@ void main() {
     addTearDown(settingsCubit.close);
 
     when(() => txRepo.fetchCategories()).thenAnswer(
-      (_) async => const [CategoryModel(id: 1, name: 'General', colorHex: '#0D3B66', icon: 'wallet')],
+      (_) async => const [
+        CategoryModel(
+            id: 1, name: 'General', colorHex: '#0D3B66', icon: 'wallet')
+      ],
     );
     when(() => txRepo.fetchTransactions()).thenAnswer((_) async => []);
-    when(() => txRepo.monthlySummary()).thenAnswer((_) async => {'income': 0, 'expense': 0});
+    when(() => txRepo.monthlySummary())
+        .thenAnswer((_) async => {'income': 0, 'expense': 0});
+    when(() => accountRepo.getAccounts()).thenAnswer((_) async => testAccounts);
 
     when(() => budgetRepo.fetchBudgets()).thenAnswer((_) async => []);
-    when(() => settingsStorage.loadNotificationsEnabled()).thenAnswer((_) async => true);
+    when(() => settingsStorage.loadNotificationsEnabled())
+        .thenAnswer((_) async => true);
 
-    when(() => settingsStorage.loadThemeMode()).thenAnswer((_) async => ThemeMode.system);
+    when(() => settingsStorage.loadThemeMode())
+        .thenAnswer((_) async => ThemeMode.system);
     when(() => settingsStorage.loadLocale()).thenAnswer((_) async => null);
-    when(() => settingsStorage.loadLastBackupAt()).thenAnswer((_) async => null);
-    when(() => telemetryStorage.loadTelemetry()).thenAnswer((_) async => const AutoBackupTelemetry());
-    when(() => validationScheduler.scheduleValidationNow()).thenAnswer((_) async {});
+    when(() => settingsStorage.loadLastBackupAt())
+        .thenAnswer((_) async => null);
+    when(() => telemetryStorage.loadTelemetry())
+        .thenAnswer((_) async => const AutoBackupTelemetry());
+    when(() => validationScheduler.scheduleValidationNow())
+        .thenAnswer((_) async {});
 
     when(() => backupRepo.restorePreview()).thenAnswer(
       (_) async => const [
@@ -244,7 +308,8 @@ void main() {
       ],
     );
     when(() => backupRepo.restoreFromFile('file-1')).thenThrow(
-      const AppException('Backup file invalid or corrupted', code: AppErrorCodes.backupInvalidFile),
+      const AppException('Backup file invalid or corrupted',
+          code: AppErrorCodes.backupInvalidFile),
     );
 
     await settingsCubit.loadSettings();
@@ -284,21 +349,25 @@ void main() {
     expect(find.text('Backup file is invalid or corrupted'), findsOneWidget);
   });
 
-  testWidgets('settings backup should show localized google auth unavailable error', (tester) async {
+  testWidgets(
+      'settings backup should show localized google auth unavailable error',
+      (tester) async {
     final txRepo = MockTransactionRepository();
     final budgetRepo = MockBudgetRepository();
     final backupRepo = MockBackupRepository();
+    final accountRepo = MockAccountRepository();
     final settingsStorage = MockSettingsStorage();
     final localDb = MockLocalDatabaseDataSource();
     final notificationService = MockBudgetNotificationService();
     final telemetryStorage = MockAutoBackupTelemetryStorage();
     final validationScheduler = MockAutoBackupValidationScheduler();
 
-    final txCubit = TransactionCubit(txRepo);
-    final budgetCubit = BudgetCubit(budgetRepo, notificationService, settingsStorage);
-    final dashboardCubit = DashboardCubit(txRepo);
-    final settingsCubit =
-        SettingsCubit(backupRepo, settingsStorage, localDb, telemetryStorage, validationScheduler);
+    final txCubit = TransactionCubit(txRepo, accountRepo);
+    final budgetCubit =
+        BudgetCubit(budgetRepo, notificationService, settingsStorage);
+    final dashboardCubit = DashboardCubit(txRepo, accountRepo);
+    final settingsCubit = SettingsCubit(backupRepo, settingsStorage, localDb,
+        telemetryStorage, validationScheduler);
 
     addTearDown(txCubit.close);
     addTearDown(budgetCubit.close);
@@ -306,17 +375,27 @@ void main() {
     addTearDown(settingsCubit.close);
 
     when(() => txRepo.fetchCategories()).thenAnswer(
-      (_) async => const [CategoryModel(id: 1, name: 'General', colorHex: '#0D3B66', icon: 'wallet')],
+      (_) async => const [
+        CategoryModel(
+            id: 1, name: 'General', colorHex: '#0D3B66', icon: 'wallet')
+      ],
     );
     when(() => txRepo.fetchTransactions()).thenAnswer((_) async => []);
-    when(() => txRepo.monthlySummary()).thenAnswer((_) async => {'income': 0, 'expense': 0});
+    when(() => txRepo.monthlySummary())
+        .thenAnswer((_) async => {'income': 0, 'expense': 0});
+    when(() => accountRepo.getAccounts()).thenAnswer((_) async => testAccounts);
     when(() => budgetRepo.fetchBudgets()).thenAnswer((_) async => []);
-    when(() => settingsStorage.loadNotificationsEnabled()).thenAnswer((_) async => true);
-    when(() => settingsStorage.loadThemeMode()).thenAnswer((_) async => ThemeMode.system);
+    when(() => settingsStorage.loadNotificationsEnabled())
+        .thenAnswer((_) async => true);
+    when(() => settingsStorage.loadThemeMode())
+        .thenAnswer((_) async => ThemeMode.system);
     when(() => settingsStorage.loadLocale()).thenAnswer((_) async => null);
-    when(() => settingsStorage.loadLastBackupAt()).thenAnswer((_) async => null);
-    when(() => telemetryStorage.loadTelemetry()).thenAnswer((_) async => const AutoBackupTelemetry());
-    when(() => validationScheduler.scheduleValidationNow()).thenAnswer((_) async {});
+    when(() => settingsStorage.loadLastBackupAt())
+        .thenAnswer((_) async => null);
+    when(() => telemetryStorage.loadTelemetry())
+        .thenAnswer((_) async => const AutoBackupTelemetry());
+    when(() => validationScheduler.scheduleValidationNow())
+        .thenAnswer((_) async {});
     when(() => backupRepo.backupNow()).thenThrow(
       const AppException(
         'Google auth headers unavailable',
@@ -351,18 +430,24 @@ void main() {
     await tester.tap(find.text('Backup Now'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Google authentication is unavailable. Please sign in again and retry.'), findsOneWidget);
+    expect(
+        find.text(
+            'Google authentication is unavailable. Please sign in again and retry.'),
+        findsOneWidget);
   });
 
-  testWidgets('reports page should show localized no-data export error', (tester) async {
+  testWidgets('reports page should show localized no-data export error',
+      (tester) async {
     final txRepo = MockTransactionRepository();
-    final txCubit = TransactionCubit(txRepo);
+    final accountRepo = MockAccountRepository();
+    final txCubit = TransactionCubit(txRepo, accountRepo);
     final reportCubit = ReportCubit();
     addTearDown(txCubit.close);
     addTearDown(reportCubit.close);
 
     when(() => txRepo.fetchTransactions()).thenAnswer((_) async => []);
     when(() => txRepo.fetchCategories()).thenAnswer((_) async => const []);
+    when(() => accountRepo.getAccounts()).thenAnswer((_) async => const []);
     await txCubit.loadTransactions();
 
     await tester.pumpWidget(
@@ -395,17 +480,19 @@ void main() {
     final txRepo = MockTransactionRepository();
     final budgetRepo = MockBudgetRepository();
     final backupRepo = MockBackupRepository();
+    final accountRepo = MockAccountRepository();
     final settingsStorage = MockSettingsStorage();
     final localDb = MockLocalDatabaseDataSource();
     final notificationService = MockBudgetNotificationService();
     final telemetryStorage = MockAutoBackupTelemetryStorage();
     final validationScheduler = MockAutoBackupValidationScheduler();
 
-    final txCubit = TransactionCubit(txRepo);
-    final budgetCubit = BudgetCubit(budgetRepo, notificationService, settingsStorage);
-    final dashboardCubit = DashboardCubit(txRepo);
-    final settingsCubit =
-        SettingsCubit(backupRepo, settingsStorage, localDb, telemetryStorage, validationScheduler);
+    final txCubit = TransactionCubit(txRepo, accountRepo);
+    final budgetCubit =
+        BudgetCubit(budgetRepo, notificationService, settingsStorage);
+    final dashboardCubit = DashboardCubit(txRepo, accountRepo);
+    final settingsCubit = SettingsCubit(backupRepo, settingsStorage, localDb,
+        telemetryStorage, validationScheduler);
 
     addTearDown(txCubit.close);
     addTearDown(budgetCubit.close);
@@ -414,14 +501,21 @@ void main() {
 
     when(() => txRepo.fetchCategories()).thenAnswer((_) async => const []);
     when(() => txRepo.fetchTransactions()).thenAnswer((_) async => const []);
-    when(() => txRepo.monthlySummary()).thenAnswer((_) async => {'income': 0, 'expense': 0});
+    when(() => txRepo.monthlySummary())
+        .thenAnswer((_) async => {'income': 0, 'expense': 0});
+    when(() => accountRepo.getAccounts()).thenAnswer((_) async => const []);
     when(() => budgetRepo.fetchBudgets()).thenAnswer((_) async => const []);
-    when(() => settingsStorage.loadNotificationsEnabled()).thenAnswer((_) async => true);
-    when(() => settingsStorage.loadThemeMode()).thenAnswer((_) async => ThemeMode.system);
+    when(() => settingsStorage.loadNotificationsEnabled())
+        .thenAnswer((_) async => true);
+    when(() => settingsStorage.loadThemeMode())
+        .thenAnswer((_) async => ThemeMode.system);
     when(() => settingsStorage.loadLocale()).thenAnswer((_) async => null);
-    when(() => settingsStorage.loadLastBackupAt()).thenAnswer((_) async => null);
-    when(() => telemetryStorage.loadTelemetry()).thenAnswer((_) async => const AutoBackupTelemetry());
-    when(() => validationScheduler.scheduleValidationNow()).thenAnswer((_) async {});
+    when(() => settingsStorage.loadLastBackupAt())
+        .thenAnswer((_) async => null);
+    when(() => telemetryStorage.loadTelemetry())
+        .thenAnswer((_) async => const AutoBackupTelemetry());
+    when(() => validationScheduler.scheduleValidationNow())
+        .thenAnswer((_) async {});
 
     await settingsCubit.loadSettings();
 

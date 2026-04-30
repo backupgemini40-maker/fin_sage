@@ -5,6 +5,8 @@ import 'package:fin_sage/core/errors/app_exception.dart';
 import 'package:fin_sage/core/errors/app_error_codes.dart';
 import 'package:fin_sage/data/datasources/local/db_migration_service.dart';
 import 'package:fin_sage/data/datasources/local/secure_key_service.dart';
+import 'package:fin_sage/data/models/recurring_transaction_model.dart';
+import 'package:fin_sage/data/models/account_model.dart';
 import 'package:fin_sage/data/models/budget_model.dart';
 import 'package:fin_sage/data/models/category_model.dart';
 import 'package:fin_sage/data/models/transaction_model.dart';
@@ -81,6 +83,22 @@ class LocalDatabaseDataSource {
         conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
+  Future<void> saveTransactionWithBalance(TransactionModel transaction) async {
+    final db = await _database();
+    await db.transaction((txn) async {
+      await txn.insert(
+        'transactions',
+        transaction.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+      await _adjustAccountBalanceInTransaction(
+        txn,
+        accountId: transaction.accountId,
+        amount: _signedTransactionAmount(transaction),
+      );
+    });
+  }
+
   Future<void> updateTransaction(TransactionModel transaction) async {
     if (transaction.id == null) {
       throw ArgumentError('Transaction id is required for update');
@@ -95,10 +113,111 @@ class LocalDatabaseDataSource {
     );
   }
 
+  Future<void> updateTransactionWithBalance(
+      TransactionModel transaction) async {
+    if (transaction.id == null) {
+      throw ArgumentError('Transaction id is required for update');
+    }
+
+    final db = await _database();
+    await db.transaction((txn) async {
+      final existingRows = await txn.query(
+        'transactions',
+        where: 'id = ?',
+        whereArgs: [transaction.id],
+        limit: 1,
+      );
+      if (existingRows.isEmpty) {
+        throw const AppException(
+          'Transaction not found',
+          code: AppErrorCodes.unexpectedError,
+        );
+      }
+
+      final existing = TransactionModel.fromMap(existingRows.first);
+      await _adjustAccountBalanceInTransaction(
+        txn,
+        accountId: existing.accountId,
+        amount: -_signedTransactionAmount(existing),
+      );
+
+      final updated = await txn.update(
+        'transactions',
+        transaction.toMap(),
+        where: 'id = ?',
+        whereArgs: [transaction.id],
+        conflictAlgorithm: ConflictAlgorithm.abort,
+      );
+      if (updated != 1) {
+        throw const AppException(
+          'Transaction update failed',
+          code: AppErrorCodes.unexpectedError,
+        );
+      }
+
+      await _adjustAccountBalanceInTransaction(
+        txn,
+        accountId: transaction.accountId,
+        amount: _signedTransactionAmount(transaction),
+      );
+    });
+  }
+
   Future<void> deleteTransaction(int transactionId) async {
     final db = await _database();
     await db
         .delete('transactions', where: 'id = ?', whereArgs: [transactionId]);
+  }
+
+  Future<void> deleteTransactionWithBalance(int transactionId) async {
+    final db = await _database();
+    await db.transaction((txn) async {
+      final existingRows = await txn.query(
+        'transactions',
+        where: 'id = ?',
+        whereArgs: [transactionId],
+        limit: 1,
+      );
+      if (existingRows.isEmpty) {
+        throw const AppException(
+          'Transaction not found',
+          code: AppErrorCodes.unexpectedError,
+        );
+      }
+
+      final existing = TransactionModel.fromMap(existingRows.first);
+      final deleted = await txn.delete(
+        'transactions',
+        where: 'id = ?',
+        whereArgs: [transactionId],
+      );
+      if (deleted != 1) {
+        throw const AppException(
+          'Transaction delete failed',
+          code: AppErrorCodes.unexpectedError,
+        );
+      }
+
+      await _adjustAccountBalanceInTransaction(
+        txn,
+        accountId: existing.accountId,
+        amount: -_signedTransactionAmount(existing),
+      );
+    });
+  }
+
+  Future<void> adjustAccountBalance({
+    required int accountId,
+    required double amount,
+  }) async {
+    final db = await _database();
+    await db.transaction((txn) async {
+      await _adjustAccountBalanceInTransaction(
+        txn,
+        accountId: accountId,
+        amount: amount,
+      );
+    });
   }
 
   Future<List<CategoryModel>> getCategories() async {
@@ -178,6 +297,147 @@ class LocalDatabaseDataSource {
     await db.delete('budgets', where: 'id = ?', whereArgs: [budgetId]);
   }
 
+  Future<List<RecurringTransactionModel>> getRecurringTransactions() async {
+    final db = await _database();
+    final rows = await db.query('recurring_transactions',
+        orderBy: 'next_occurrence_date ASC');
+    return rows.map(RecurringTransactionModel.fromMap).toList();
+  }
+
+  Future<void> saveRecurringTransaction(
+      RecurringTransactionModel transaction) async {
+    final db = await _database();
+    await db.insert('recurring_transactions', transaction.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<void> updateRecurringTransaction(
+      RecurringTransactionModel transaction) async {
+    if (transaction.id == null) {
+      throw ArgumentError('Recurring transaction id is required for update');
+    }
+    final db = await _database();
+    await db.update(
+      'recurring_transactions',
+      transaction.toMap(),
+      where: 'id = ?',
+      whereArgs: [transaction.id],
+      conflictAlgorithm: ConflictAlgorithm.abort,
+    );
+  }
+
+  Future<void> deleteRecurringTransaction(int transactionId) async {
+    final db = await _database();
+    await db.delete('recurring_transactions',
+        where: 'id = ?', whereArgs: [transactionId]);
+  }
+
+  Future<List<AccountModel>> getAccounts() async {
+    final db = await _database();
+    final rows = await db.query(
+      'accounts',
+      where: 'is_archived = ?',
+      whereArgs: [0],
+      orderBy: 'name ASC',
+    );
+    return rows.map(AccountModel.fromMap).toList();
+  }
+
+  Future<void> saveAccount(AccountModel account) async {
+    final db = await _database();
+    final normalizedName = account.name.trim().toLowerCase();
+    final existing = await db.query(
+      'accounts',
+      where: 'lower(name) = ?',
+      whereArgs: [normalizedName],
+      limit: 1,
+    );
+    if (existing.isNotEmpty) {
+      throw const AppException(
+        'Account already exists',
+        code: AppErrorCodes.accountAlreadyExists,
+      );
+    }
+
+    await db.insert('accounts', account.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.abort);
+  }
+
+  Future<void> updateAccount(AccountModel account) async {
+    if (account.id == null) {
+      throw ArgumentError('Account id is required for update');
+    }
+    final db = await _database();
+    await db.update(
+      'accounts',
+      account.toMap(),
+      where: 'id = ?',
+      whereArgs: [account.id],
+      conflictAlgorithm: ConflictAlgorithm.abort,
+    );
+  }
+
+  Future<void> archiveAccount(int accountId) async {
+    if (accountId == 1) {
+      throw const AppException(
+        'Default account cannot be archived',
+        code: AppErrorCodes.defaultAccountArchiveBlocked,
+      );
+    }
+
+    final db = await _database();
+    final rows = await db.query(
+      'accounts',
+      columns: ['balance'],
+      where: 'id = ?',
+      whereArgs: [accountId],
+      limit: 1,
+    );
+    if (rows.isEmpty) {
+      throw const AppException(
+        'Account not found',
+        code: AppErrorCodes.accountNotFound,
+      );
+    }
+    final balance = (rows.first['balance'] as num?)?.toDouble() ?? 0;
+    if (balance.abs() > 0.005) {
+      throw const AppException(
+        'Account balance must be zero before archiving',
+        code: AppErrorCodes.accountBalanceNotZero,
+      );
+    }
+
+    await db.update(
+      'accounts',
+      {'is_archived': 1},
+      where: 'id = ?',
+      whereArgs: [accountId],
+    );
+  }
+
+  double _signedTransactionAmount(TransactionModel transaction) {
+    return transaction.type == TransactionType.income
+        ? transaction.amount
+        : -transaction.amount;
+  }
+
+  Future<void> _adjustAccountBalanceInTransaction(
+    Transaction txn, {
+    required int accountId,
+    required double amount,
+  }) async {
+    final updated = await txn.rawUpdate(
+      'UPDATE accounts SET balance = balance + ? WHERE id = ?',
+      [amount, accountId],
+    );
+    if (updated != 1) {
+      throw const AppException(
+        'Account not found',
+        code: AppErrorCodes.accountNotFound,
+      );
+    }
+  }
+
   Future<void> replaceDatabaseFile(List<int> bytes) async {
     final activeDb = _db;
     _db = null;
@@ -197,11 +457,20 @@ class LocalDatabaseDataSource {
       await txn.delete('transactions');
       await txn.delete('budgets');
       await txn.delete('categories');
+      await txn.delete('accounts');
+      await txn.delete('recurring_transactions');
       await txn.insert('categories', {
         'name': 'General',
         'color_hex': '#0D3B66',
         'icon': 'wallet',
         'is_archived': 0,
+      });
+      await txn.insert('accounts', {
+        'name': 'Primary',
+        'type': 'Cash',
+        'balance': 0.0,
+        'color_hex': '#4F8FC0',
+        'icon': 'account_balance_wallet',
       });
     });
   }

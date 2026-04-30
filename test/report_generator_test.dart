@@ -13,6 +13,7 @@ void main() {
       amount: 15000000,
       date: DateTime(2026, 4, 10),
       categoryId: 1,
+      accountId: 1,
       type: TransactionType.income,
     ),
     TransactionModel(
@@ -21,6 +22,7 @@ void main() {
       amount: 500000,
       date: DateTime(2026, 4, 12),
       categoryId: 1,
+      accountId: 1,
       type: TransactionType.expense,
     ),
   ];
@@ -28,7 +30,7 @@ void main() {
   test('generateCsv should include header and rows', () async {
     final csv = await generator.generateCsv(items);
 
-    expect(csv, contains('id,title,amount,type,date,category_id'));
+    expect(csv, contains('id,title,amount,type,date,category_id,account_id'));
     expect(csv, contains('Salary'));
     expect(csv, contains('Groceries'));
   });
@@ -48,6 +50,7 @@ void main() {
         amount: 75000,
         date: DateTime(2026, 4, 14),
         categoryId: 1,
+        accountId: 1,
         type: TransactionType.expense,
       ),
     ];
@@ -71,6 +74,7 @@ void main() {
         csvHeaderType: 'tipe',
         csvHeaderDate: 'tanggal',
         csvHeaderCategoryId: 'kategori_id',
+        csvHeaderAccountId: 'akun_id',
         transactionTypeIncome: 'Pemasukan',
         transactionTypeExpense: 'Pengeluaran',
         pdfDefaultTitle: 'Laporan',
@@ -81,7 +85,8 @@ void main() {
       ),
     );
 
-    expect(csv, contains('id_lokal,judul,jumlah,tipe,tanggal,kategori_id'));
+    expect(csv,
+        contains('id_lokal,judul,jumlah,tipe,tanggal,kategori_id,akun_id'));
     expect(csv, contains('Pemasukan'));
     expect(csv, contains('Pengeluaran'));
   });

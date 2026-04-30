@@ -12,6 +12,7 @@ import 'package:fin_sage/core/utils/sentry_config.dart';
 import 'package:fin_sage/features/budgets/budget_notification_service.dart';
 import 'package:fin_sage/l10n/generated/app_localizations.dart';
 import 'package:fin_sage/features/settings/backup_scheduler.dart';
+import 'package:fin_sage/features/transactions/recurring_transaction_service.dart';
 import 'package:fin_sage/logic/auth/auth_cubit.dart';
 import 'package:fin_sage/logic/budgets/budget_cubit.dart';
 import 'package:fin_sage/logic/dashboard/dashboard_cubit.dart';
@@ -75,6 +76,20 @@ Future<void> _bootstrapServicesSafely() async {
         stack: stackTrace,
         library: 'FinSage bootstrap',
         context: ErrorDescription('while scheduling auto-backup background task'),
+      ),
+    );
+  }
+
+  try {
+    await RecurringTransactionScheduler.initialize();
+    await RecurringTransactionScheduler.scheduleDaily();
+  } catch (error, stackTrace) {
+    FlutterError.reportError(
+      FlutterErrorDetails(
+        exception: error,
+        stack: stackTrace,
+        library: 'FinSage bootstrap',
+        context: ErrorDescription('while scheduling recurring transaction task'),
       ),
     );
   }

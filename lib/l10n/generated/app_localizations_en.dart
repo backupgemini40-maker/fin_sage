@@ -1,5 +1,3 @@
-// ignore: unused_import
-import 'package:intl/intl.dart' as intl;
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -15,15 +13,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unexpectedError => 'Unexpected error';
 
   @override
-  String get databaseOpenFailed =>
-      'Unable to open local encrypted data. This can happen after reinstall. Restore from backup or reset local data.';
+  String get databaseOpenFailed => 'Unable to open local encrypted data. This can happen after reinstall. Restore from backup or reset local data.';
 
   @override
   String get recoveryWelcomeTitle => 'Welcome back';
 
   @override
-  String get recoveryWelcomeBody =>
-      'We detected local encrypted data from a previous install. Choose to start fresh or restore from backup.';
+  String get recoveryWelcomeBody => 'We detected local encrypted data from a previous install. Choose to start fresh or restore from backup.';
 
   @override
   String get recoveryStartNewAction => 'Start New';
@@ -35,30 +31,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signInGoogle => 'Continue with Google';
 
   @override
-  String get googleSignInConfigMissing =>
-      'GOOGLE_SERVER_CLIENT_ID is not set. Define it in dart-define for Google Drive backup auth.';
+  String get googleSignInConfigMissing => 'GOOGLE_SERVER_CLIENT_ID is not set. Define it in dart-define for Google Drive backup auth.';
 
   @override
-  String get googleAuthUnavailable =>
-      'Google authentication is unavailable. Please sign in again and retry.';
+  String get googleAuthUnavailable => 'Google authentication is unavailable. Please sign in again and retry.';
 
   @override
-  String get googleSignInDeveloperError =>
-      'Google Sign-In configuration is invalid (OAuth/SHA-1 mismatch). Verify Firebase and Google Cloud credentials.';
+  String get googleSignInDeveloperError => 'Google Sign-In configuration is invalid (OAuth/SHA-1 mismatch). Verify Firebase and Google Cloud credentials.';
 
   @override
   String get googleSignInTroubleshootTitle => 'Google Sign-In setup details';
 
   @override
-  String get googleSignInTroubleshootHint =>
-      'Use the Android package and keystore SHA-1/SHA-256 values below to match Firebase and Google Cloud OAuth credentials.';
+  String get googleSignInTroubleshootHint => 'Use the Android package and keystore SHA-1/SHA-256 values below to match Firebase and Google Cloud OAuth credentials.';
 
   @override
   String get androidApplicationIdLabel => 'Android applicationId';
 
   @override
-  String get serverClientIdConfiguredLabel =>
-      'GOOGLE_SERVER_CLIENT_ID configured';
+  String get serverClientIdConfiguredLabel => 'GOOGLE_SERVER_CLIENT_ID configured';
 
   @override
   String get clientIdConfiguredLabel => 'GOOGLE_CLIENT_ID configured';
@@ -101,6 +92,100 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsTitle => 'Settings';
+
+  @override
+  String get accountsTitle => 'Accounts';
+
+  @override
+  String get addAccount => 'Add Account';
+
+  @override
+  String get editAccount => 'Edit Account';
+
+  @override
+  String get accountLabel => 'Account';
+
+  @override
+  String get accountNameLabel => 'Account Name';
+
+  @override
+  String get accountTypeLabel => 'Account Type';
+
+  @override
+  String get accountTypeCash => 'Cash';
+
+  @override
+  String get accountTypeBank => 'Bank';
+
+  @override
+  String get accountTypeWallet => 'Wallet';
+
+  @override
+  String get accountTypeSavings => 'Savings';
+
+  @override
+  String get accountTypeCredit => 'Credit';
+
+  @override
+  String get initialBalanceLabel => 'Initial Balance';
+
+  @override
+  String get currentBalanceLabel => 'Current Balance';
+
+  @override
+  String get accountColorLabel => 'Accent Color';
+
+  @override
+  String totalAccounts(Object count) {
+    return '$count accounts';
+  }
+
+  @override
+  String get emptyAccounts => 'No accounts yet';
+
+  @override
+  String get emptyAccountsSubtitle => 'Create an account to track cash, banks, wallets, and cards.';
+
+  @override
+  String get archiveAccountTitle => 'Archive Account';
+
+  @override
+  String archiveAccountBody(Object name) {
+    return 'Archive account \"$name\"?';
+  }
+
+  @override
+  String get accountArchived => 'Account archived';
+
+  @override
+  String get accountAlreadyExists => 'Account already exists';
+
+  @override
+  String get accountNotFound => 'Account not found';
+
+  @override
+  String get accountBalanceNotZero => 'Move or clear the account balance before archiving';
+
+  @override
+  String get defaultAccountArchiveBlocked => 'Default account cannot be archived';
+
+  @override
+  String get dashboardAccountSnapshot => 'Account Snapshot';
+
+  @override
+  String get cashFlowHealthTitle => 'Cash Flow Health';
+
+  @override
+  String get monthlyNetCashFlow => 'Monthly Net Cash Flow';
+
+  @override
+  String get savingsRateLabel => 'Savings Rate';
+
+  @override
+  String get positiveCashFlowInsight => 'Positive cash flow this month';
+
+  @override
+  String get negativeCashFlowInsight => 'Spending is above income this month';
 
   @override
   String get operationInProgress => 'Processing request...';
@@ -241,6 +326,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reportCsvHeaderCategoryId => 'category_id';
 
   @override
+  String get reportCsvHeaderAccountId => 'account_id';
+
+  @override
   String transactionCount(Object count) {
     return '$count transactions';
   }
@@ -287,8 +375,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backupCompleted => 'Backup completed successfully';
 
   @override
-  String get autoBackupValidationScheduled =>
-      'Auto-backup validation has been scheduled';
+  String get autoBackupValidationScheduled => 'Auto-backup validation has been scheduled';
 
   @override
   String get validateAutoBackupLabel => 'Validate Auto Backup';
@@ -327,29 +414,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get restoreConfirmTitle => 'Confirm Restore';
 
   @override
-  String get restoreConfirmBody =>
-      'Restoring backup will overwrite local data. Continue?';
+  String get restoreConfirmBody => 'Restoring backup will overwrite local data. Continue?';
 
   @override
   String get backupInvalidFile => 'Backup file is invalid or corrupted';
 
   @override
-  String get backupChecksumMismatch =>
-      'Backup integrity check failed (checksum mismatch)';
+  String get backupChecksumMismatch => 'Backup integrity check failed (checksum mismatch)';
 
   @override
   String get signOutLabel => 'Sign Out';
 
   @override
-  String get signOutConfirmBody =>
-      'You will be returned to login screen. Continue?';
+  String get signOutConfirmBody => 'You will be returned to login screen. Continue?';
 
   @override
   String get resetLocalDataLabel => 'Reset Local Data';
 
   @override
-  String get resetLocalDataConfirmBody =>
-      'This will remove local transactions, budgets, and custom categories. Continue?';
+  String get resetLocalDataConfirmBody => 'This will remove local transactions, budgets, and custom categories. Continue?';
 
   @override
   String get resetActionLabel => 'Reset';
@@ -382,8 +465,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get categoryInUse => 'Category is still used by transactions';
 
   @override
-  String get defaultCategoryArchiveBlocked =>
-      'Default category cannot be archived';
+  String get defaultCategoryArchiveBlocked => 'Default category cannot be archived';
 
   @override
   String get archiveCategoryTitle => 'Archive Category';
@@ -409,15 +491,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get confirmDeleteTitle => 'Delete Transaction';
 
   @override
-  String get confirmDeleteBody =>
-      'This transaction will be permanently removed. Continue?';
+  String get confirmDeleteBody => 'This transaction will be permanently removed. Continue?';
 
   @override
   String get confirmDeleteBudgetTitle => 'Delete Budget';
 
   @override
-  String get confirmDeleteBudgetBody =>
-      'This budget will be permanently removed. Continue?';
+  String get confirmDeleteBudgetBody => 'This budget will be permanently removed. Continue?';
 
   @override
   String get cancelLabel => 'Cancel';
@@ -430,4 +510,52 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get restoreActionLabel => 'Restore';
+
+  @override
+  String get recurringTransactionsTitle => 'Recurring Transactions';
+
+  @override
+  String get recurringTransactionsSubtitle => 'Manage automatic transactions';
+
+  @override
+  String get addRecurringTransaction => 'Add Recurring Transaction';
+
+  @override
+  String get editRecurringTransaction => 'Edit Recurring Transaction';
+
+  @override
+  String get recurringEmptyTitle => 'No recurring transactions yet';
+
+  @override
+  String get recurringEmptySubtitle => 'Automate subscriptions, bills, salary, and transfers.';
+
+  @override
+  String get recurrenceLabel => 'Recurrence';
+
+  @override
+  String get recurrenceDaily => 'Daily';
+
+  @override
+  String get recurrenceWeekly => 'Weekly';
+
+  @override
+  String get recurrenceMonthly => 'Monthly';
+
+  @override
+  String get recurrenceYearly => 'Yearly';
+
+  @override
+  String get recurrenceCustom => 'Custom Rule';
+
+  @override
+  String get recurrenceRuleLabel => 'Rule';
+
+  @override
+  String get rruleLabel => 'RRULE';
+
+  @override
+  String get invalidRRule => 'Invalid RRULE';
+
+  @override
+  String get accountAndCategoryRequired => 'Please create at least one category and one account first.';
 }

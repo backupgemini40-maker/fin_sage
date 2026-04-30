@@ -11,25 +11,31 @@ class TransactionRepositoryImpl implements TransactionRepository {
   final DriftQueryService _drift;
 
   @override
-  Future<List<TransactionModel>> fetchTransactions() => _local.getTransactions();
+  Future<List<TransactionModel>> fetchTransactions() =>
+      _local.getTransactions();
 
   @override
   Future<List<CategoryModel>> fetchCategories() => _local.getCategories();
 
   @override
-  Future<void> saveCategory(CategoryModel category) => _local.saveCategory(category);
+  Future<void> saveCategory(CategoryModel category) =>
+      _local.saveCategory(category);
 
   @override
-  Future<void> archiveCategory(int categoryId) => _local.archiveCategory(categoryId);
+  Future<void> archiveCategory(int categoryId) =>
+      _local.archiveCategory(categoryId);
 
   @override
-  Future<void> saveTransaction(TransactionModel transaction) => _local.saveTransaction(transaction);
+  Future<void> saveTransaction(TransactionModel transaction) =>
+      _local.saveTransactionWithBalance(transaction);
 
   @override
-  Future<void> updateTransaction(TransactionModel transaction) => _local.updateTransaction(transaction);
+  Future<void> updateTransaction(TransactionModel transaction) =>
+      _local.updateTransactionWithBalance(transaction);
 
   @override
-  Future<void> deleteTransaction(int transactionId) => _local.deleteTransaction(transactionId);
+  Future<void> deleteTransaction(int transactionId) =>
+      _local.deleteTransactionWithBalance(transactionId);
 
   @override
   Future<Map<String, double>> monthlySummary() => _drift.monthlySummary();

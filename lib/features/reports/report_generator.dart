@@ -15,6 +15,7 @@ class ReportContentLabels {
     required this.csvHeaderType,
     required this.csvHeaderDate,
     required this.csvHeaderCategoryId,
+    required this.csvHeaderAccountId,
     required this.transactionTypeIncome,
     required this.transactionTypeExpense,
     required this.pdfDefaultTitle,
@@ -31,6 +32,7 @@ class ReportContentLabels {
         csvHeaderType = 'type',
         csvHeaderDate = 'date',
         csvHeaderCategoryId = 'category_id',
+        csvHeaderAccountId = 'account_id',
         transactionTypeIncome = 'Income',
         transactionTypeExpense = 'Expense',
         pdfDefaultTitle = 'FinSage Financial Report',
@@ -45,6 +47,7 @@ class ReportContentLabels {
   final String csvHeaderType;
   final String csvHeaderDate;
   final String csvHeaderCategoryId;
+  final String csvHeaderAccountId;
   final String transactionTypeIncome;
   final String transactionTypeExpense;
   final String pdfDefaultTitle;
@@ -75,6 +78,7 @@ class ReportGenerator {
         labels.csvHeaderType,
         labels.csvHeaderDate,
         labels.csvHeaderCategoryId,
+        labels.csvHeaderAccountId,
       ],
       ...items.map(
         (e) => [
@@ -84,6 +88,7 @@ class ReportGenerator {
           labels.transactionTypeLabel(e.type),
           e.date.toIso8601String(),
           e.categoryId,
+          e.accountId,
         ],
       ),
     ];

@@ -45,6 +45,7 @@ dependencies:
   csv: ^6.0.0
   pdf: ^3.11.1
   printing: ^5.13.4
+  rrule: ^0.2.18
 
   sentry_flutter: ^8.9.0
 

@@ -246,6 +246,17 @@ class SettingsPage extends StatelessWidget {
                       const SizedBox(height: 16),
                       Card(
                         child: ListTile(
+                          leading: const Icon(Icons.repeat),
+                          title: Text(l10n.recurringTransactionsTitle),
+                          subtitle: Text(l10n.recurringTransactionsSubtitle),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: () => Navigator.of(context)
+                              .pushNamed(AppRoutes.recurringTransactions),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Card(
+                        child: ListTile(
                           leading: const Icon(Icons.info_outline),
                           title: Text(l10n.appInfoTitle),
                           subtitle: Text(
