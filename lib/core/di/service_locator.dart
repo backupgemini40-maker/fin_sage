@@ -42,7 +42,15 @@ class ServiceLocator {
   static Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
 
-    sl.registerLazySingleton(() => const FlutterSecureStorage());
+    sl.registerLazySingleton(
+      () => const FlutterSecureStorage(
+        aOptions: AndroidOptions(
+          encryptedSharedPreferences: true,
+          sharedPreferencesName: 'finsage_secure_storage',
+          preferencesKeyPrefix: 'finsage_',
+        ),
+      ),
+    );
     sl.registerLazySingleton<SettingsStorage>(
         () => SharedPrefsSettingsStorage(prefs));
     sl.registerLazySingleton<AutoBackupTelemetryStorage>(

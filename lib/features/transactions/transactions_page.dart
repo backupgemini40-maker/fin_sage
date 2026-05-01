@@ -6,6 +6,7 @@ import 'package:fin_sage/core/constants/app_routes.dart';
 import 'package:fin_sage/core/widgets/app_bottom_nav.dart';
 import 'package:fin_sage/core/widgets/atmospheric_scaffold_body.dart';
 import 'package:fin_sage/core/widgets/empty_state_panel.dart';
+import 'package:fin_sage/core/widgets/icon_mapper.dart';
 import 'package:fin_sage/core/widgets/loading_skeleton.dart';
 import 'package:fin_sage/core/widgets/section_reveal.dart';
 import 'package:fin_sage/data/models/account_model.dart';
@@ -208,6 +209,8 @@ class TransactionsPage extends StatelessWidget {
                                 : Theme.of(context).colorScheme.error;
                             final categoryName = _categoryNameById(
                                 state.categories, tx.categoryId);
+                            final categoryIcon = _categoryIconById(
+                                state.categories, tx.categoryId);
                             final accountName =
                                 _accountNameById(state.accounts, tx.accountId);
 
@@ -216,9 +219,7 @@ class TransactionsPage extends StatelessWidget {
                               child: Card(
                                 child: ListTile(
                                   leading: Icon(
-                                    isIncome
-                                        ? Icons.south_west
-                                        : Icons.north_east,
+                                    mapStringToIconData(categoryIcon),
                                     color: _categoryColor(
                                             state.categories, tx.categoryId) ??
                                         amountColor,
@@ -419,7 +420,16 @@ class TransactionsPage extends StatelessWidget {
                             .map(
                               (category) => DropdownMenuItem<int>(
                                 value: category.id ?? 1,
-                                child: Text(category.name),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      mapStringToIconData(category.icon),
+                                      size: 18,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Flexible(child: Text(category.name)),
+                                  ],
+                                ),
                               ),
                             )
                             .toList(),
@@ -592,6 +602,15 @@ class TransactionsPage extends StatelessWidget {
       }
     }
     return '#$id';
+  }
+
+  String _categoryIconById(List<CategoryModel> categories, int id) {
+    for (final category in categories) {
+      if (category.id == id) {
+        return category.icon;
+      }
+    }
+    return 'receipt_long';
   }
 
   String _accountNameById(List<AccountModel> accounts, int id) {

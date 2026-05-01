@@ -1,4 +1,5 @@
 import 'package:fin_sage/core/di/service_locator.dart';
+import 'package:fin_sage/core/widgets/icon_mapper.dart';
 import 'package:fin_sage/data/models/account_model.dart';
 import 'package:fin_sage/data/models/category_model.dart';
 import 'package:fin_sage/data/models/recurring_transaction_model.dart';
@@ -199,7 +200,13 @@ class _AddEditRecurringTransactionPageState
                   .map(
                     (category) => DropdownMenuItem<int>(
                       value: category.id!,
-                      child: Text(category.name),
+                      child: Row(
+                        children: [
+                          Icon(mapStringToIconData(category.icon), size: 18),
+                          const SizedBox(width: 8),
+                          Flexible(child: Text(category.name)),
+                        ],
+                      ),
                     ),
                   )
                   .toList(growable: false),

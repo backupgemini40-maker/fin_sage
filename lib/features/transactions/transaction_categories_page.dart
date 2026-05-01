@@ -1,5 +1,6 @@
 import 'package:fin_sage/core/errors/error_localizer.dart';
 import 'package:fin_sage/core/utils/validators.dart';
+import 'package:fin_sage/core/widgets/icon_mapper.dart';
 import 'package:fin_sage/core/widgets/loading_skeleton.dart';
 import 'package:fin_sage/data/models/category_model.dart';
 import 'package:fin_sage/l10n/generated/app_localizations.dart';
@@ -62,7 +63,10 @@ class TransactionCategoriesPage extends StatelessWidget {
                 child: ListTile(
                   leading: CircleAvatar(
                     backgroundColor: color.withOpacity(0.16),
-                    child: Icon(Icons.category_outlined, color: color),
+                    child: Icon(
+                      mapStringToIconData(category.icon),
+                      color: color,
+                    ),
                   ),
                   title: Text(category.name),
                   subtitle: Text('${category.colorHex} • ${category.icon}'),
@@ -98,74 +102,100 @@ class TransactionCategoriesPage extends StatelessWidget {
     final formKey = GlobalKey<FormState>();
     final nameCtrl = TextEditingController();
     final colorCtrl = TextEditingController(text: '#0D3B66');
-    final iconCtrl = TextEditingController(text: 'wallet');
+    var selectedIcon = 'wallet';
 
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (sheetContext) {
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 16,
-            bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 16,
-          ),
-          child: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: nameCtrl,
-                  decoration:
-                      InputDecoration(labelText: l10n.categoryNameLabel),
-                  validator: (value) =>
-                      _errorFromCode(l10n, Validators.categoryName(value)),
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: colorCtrl,
-                  decoration: InputDecoration(labelText: l10n.colorHexLabel),
-                  validator: (value) =>
-                      _errorFromCode(l10n, Validators.hexColor(value)),
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: iconCtrl,
-                  decoration: InputDecoration(labelText: l10n.iconLabel),
-                ),
-                const SizedBox(height: 16),
-                FilledButton(
-                  onPressed: () async {
-                    if (!formKey.currentState!.validate()) {
-                      return;
-                    }
-                    await HapticFeedback.lightImpact();
-                    await cubit.createCategory(
-                      CategoryModel(
-                        id: null,
-                        name: nameCtrl.text.trim(),
-                        colorHex: colorCtrl.text.trim().isEmpty
-                            ? '#0D3B66'
-                            : colorCtrl.text.trim(),
-                        icon: iconCtrl.text.trim().isEmpty
-                            ? 'wallet'
-                            : iconCtrl.text.trim(),
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 16,
+              ),
+              child: Form(
+                key: formKey,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextFormField(
+                        controller: nameCtrl,
+                        decoration:
+                            InputDecoration(labelText: l10n.categoryNameLabel),
+                        validator: (value) => _errorFromCode(
+                            l10n, Validators.categoryName(value)),
                       ),
-                    );
-                    if (cubit.state.error == null && sheetContext.mounted) {
-                      Navigator.pop(sheetContext);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(l10n.categoryCreated)),
-                      );
-                    }
-                  },
-                  child: Text(l10n.saveLabel),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: colorCtrl,
+                        decoration:
+                            InputDecoration(labelText: l10n.colorHexLabel),
+                        validator: (value) =>
+                            _errorFromCode(l10n, Validators.hexColor(value)),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        l10n.iconLabel,
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          for (final iconName in kSelectableIconNames)
+                            ChoiceChip(
+                              avatar: Icon(
+                                mapStringToIconData(iconName),
+                                size: 18,
+                              ),
+                              label: Text(readableIconName(iconName)),
+                              selected: selectedIcon == iconName,
+                              onSelected: (_) =>
+                                  setState(() => selectedIcon = iconName),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      FilledButton.icon(
+                        onPressed: () async {
+                          if (!formKey.currentState!.validate()) {
+                            return;
+                          }
+                          await HapticFeedback.lightImpact();
+                          await cubit.createCategory(
+                            CategoryModel(
+                              id: null,
+                              name: nameCtrl.text.trim(),
+                              colorHex: colorCtrl.text.trim().isEmpty
+                                  ? '#0D3B66'
+                                  : colorCtrl.text.trim(),
+                              icon: selectedIcon,
+                            ),
+                          );
+                          if (cubit.state.error == null &&
+                              sheetContext.mounted) {
+                            Navigator.pop(sheetContext);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(l10n.categoryCreated)),
+                            );
+                          }
+                        },
+                        icon: const Icon(Icons.save_outlined),
+                        label: Text(l10n.saveLabel),
+                      ),
+                    ],
+                  ),
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );

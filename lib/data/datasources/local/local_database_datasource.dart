@@ -10,6 +10,7 @@ import 'package:fin_sage/data/models/account_model.dart';
 import 'package:fin_sage/data/models/budget_model.dart';
 import 'package:fin_sage/data/models/category_model.dart';
 import 'package:fin_sage/data/models/transaction_model.dart';
+import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
@@ -30,34 +31,86 @@ class LocalDatabaseDataSource {
     final dbPath = p.join(folder, AppConstants.dbName);
     final dbFile = File(dbPath);
     final dbExists = await dbFile.exists();
+    if (dbExists && await dbFile.length() == 0) {
+      await _deleteDatabaseFiles(dbPath);
+    }
+    if (!await dbFile.exists()) {
+      await _deleteDatabaseSidecarFiles(dbPath);
+    }
 
-    var key = await _secureKeyService.readDbKey();
-    if ((key == null || key.isEmpty) && dbExists) {
+    final hasDatabaseFile = await dbFile.exists();
+    final keyCandidates = await _secureKeyService.readDbKeyCandidates();
+    if (keyCandidates.isEmpty && hasDatabaseFile) {
       throw const AppException(
         'Failed to open encrypted local database: encryption key unavailable for existing database file.',
         code: AppErrorCodes.databaseOpenFailed,
       );
     }
-    key ??= await _secureKeyService.createDbKey();
+
+    late final List<String> keysToTry;
+    try {
+      keysToTry = keyCandidates.isEmpty
+          ? [await _secureKeyService.createDbKey()]
+          : keyCandidates;
+    } on PlatformException catch (e) {
+      throw AppException(
+        'Failed to open encrypted local database: encryption key storage unavailable: ${e.message ?? e.code}',
+        code: AppErrorCodes.databaseOpenFailed,
+      );
+    }
+    DatabaseException? lastOpenError;
 
     try {
-      _db = await openDatabase(
-        dbPath,
-        password: key,
-        version: DbMigrationService.schemaVersion,
-        onCreate: (db, version) async =>
-            _migrationService.createLatestSchema(db),
-        onUpgrade: (db, oldVersion, newVersion) async =>
-            _migrationService.upgrade(db, oldVersion, newVersion),
-      );
+      for (final key in keysToTry) {
+        try {
+          _db = await _openEncryptedDatabase(dbPath, key);
+          await _secureKeyService.persistDbKey(key);
+          return _db!;
+        } on DatabaseException catch (e) {
+          lastOpenError = e;
+        }
+      }
     } on DatabaseException catch (e) {
+      lastOpenError = e;
+    }
+
+    if (lastOpenError != null) {
       throw AppException(
-        'Failed to open encrypted local database: ${e.toString()}',
+        'Failed to open encrypted local database: ${lastOpenError.toString()}',
         code: AppErrorCodes.databaseOpenFailed,
       );
     }
 
-    return _db!;
+    throw const AppException(
+      'Failed to open encrypted local database: no usable encryption key found.',
+      code: AppErrorCodes.databaseOpenFailed,
+    );
+  }
+
+  Future<Database> _openEncryptedDatabase(String dbPath, String key) {
+    return openDatabase(
+      dbPath,
+      password: key,
+      version: DbMigrationService.schemaVersion,
+      onConfigure: (db) async {
+        await _configureEncryptedDatabase(db);
+      },
+      onCreate: (db, version) async => _migrationService.createLatestSchema(db),
+      onUpgrade: (db, oldVersion, newVersion) async =>
+          _migrationService.upgrade(db, oldVersion, newVersion),
+    );
+  }
+
+  Future<void> _configureEncryptedDatabase(Database db) async {
+    try {
+      await db.rawQuery('PRAGMA cipher_migrate');
+    } on DatabaseException {
+      // New SQLCipher databases do not always need migration. Keep opening and
+      // let the real schema read/write path surface any remaining issue.
+    }
+
+    await db.execute('PRAGMA foreign_keys = ON');
+    await db.rawQuery('PRAGMA busy_timeout = 5000');
   }
 
   Future<String> databasePath() async {
@@ -65,8 +118,32 @@ class LocalDatabaseDataSource {
     return p.join(folder, AppConstants.dbName);
   }
 
+  Future<void> _deleteDatabaseFiles(String dbPath) async {
+    await _deleteFileIfExists(dbPath);
+    await _deleteDatabaseSidecarFiles(dbPath);
+  }
+
+  Future<void> _deleteDatabaseSidecarFiles(String dbPath) async {
+    await _deleteFileIfExists('$dbPath-wal');
+    await _deleteFileIfExists('$dbPath-shm');
+    await _deleteFileIfExists('$dbPath-journal');
+  }
+
+  Future<void> _deleteFileIfExists(String path) async {
+    final file = File(path);
+    if (await file.exists()) {
+      await file.delete();
+    }
+  }
+
   Future<List<int>> databaseBytes() async {
-    await _database();
+    final db = await _database();
+    try {
+      await db.rawQuery('PRAGMA wal_checkpoint(FULL)');
+    } on DatabaseException {
+      // Some SQLCipher builds keep DELETE journal mode. In that case there is
+      // no WAL to checkpoint before copying the encrypted database file.
+    }
     final file = File(await databasePath());
     return file.readAsBytes();
   }
@@ -444,11 +521,8 @@ class LocalDatabaseDataSource {
     await activeDb?.close();
 
     final path = await databasePath();
-    final file = File(path);
-    if (await file.exists()) {
-      await file.delete();
-    }
-    await file.writeAsBytes(bytes, flush: true);
+    await _deleteDatabaseFiles(path);
+    await File(path).writeAsBytes(bytes, flush: true);
   }
 
   Future<void> resetLocalData() async {
@@ -504,10 +578,7 @@ class LocalDatabaseDataSource {
     await activeDb?.close();
 
     final path = await databasePath();
-    final file = File(path);
-    if (await file.exists()) {
-      await file.delete();
-    }
+    await _deleteDatabaseFiles(path);
     await _secureKeyService.deleteDbKey();
   }
 }
