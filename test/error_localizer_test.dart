@@ -9,10 +9,14 @@ void main() {
   final l10nId = lookupAppLocalizations(const Locale('id'));
 
   test('localizeErrorMessage maps known codes', () {
-    expect(localizeErrorMessage(l10nEn, AppErrorCodes.unexpectedError), l10nEn.unexpectedError);
-    expect(localizeErrorMessage(l10nEn, AppErrorCodes.databaseOpenFailed), l10nEn.databaseOpenFailed);
-    expect(localizeErrorMessage(l10nEn, AppErrorCodes.categoryAlreadyExists), l10nEn.categoryExists);
-    expect(localizeErrorMessage(l10nEn, AppErrorCodes.backupInvalidFile), l10nEn.backupInvalidFile);
+    expect(localizeErrorMessage(l10nEn, AppErrorCodes.unexpectedError),
+        l10nEn.unexpectedError);
+    expect(localizeErrorMessage(l10nEn, AppErrorCodes.databaseOpenFailed),
+        l10nEn.databaseOpenFailed);
+    expect(localizeErrorMessage(l10nEn, AppErrorCodes.categoryAlreadyExists),
+        l10nEn.categoryExists);
+    expect(localizeErrorMessage(l10nEn, AppErrorCodes.backupInvalidFile),
+        l10nEn.backupInvalidFile);
     expect(
       localizeErrorMessage(l10nEn, AppErrorCodes.googleAuthHeadersUnavailable),
       l10nEn.googleAuthUnavailable,
@@ -21,19 +25,33 @@ void main() {
       localizeErrorMessage(l10nEn, AppErrorCodes.googleSignInDeveloperError),
       l10nEn.googleSignInDeveloperError,
     );
-    expect(localizeErrorMessage(l10nEn, AppErrorCodes.noDataToExport), l10nEn.noDataToExport);
+    expect(localizeErrorMessage(l10nEn, AppErrorCodes.noDataToExport),
+        l10nEn.noDataToExport);
   });
 
   test('localizeErrorMessage uses active locale', () {
-    expect(localizeErrorMessage(l10nId, AppErrorCodes.categoryInUse), l10nId.categoryInUse);
+    expect(localizeErrorMessage(l10nId, AppErrorCodes.categoryInUse),
+        l10nId.categoryInUse);
     expect(
       localizeErrorMessage(l10nId, AppErrorCodes.defaultCategoryArchiveBlocked),
       l10nId.defaultCategoryArchiveBlocked,
     );
   });
 
+  test('localizeErrorMessage normalizes raw database exceptions', () {
+    expect(
+      localizeErrorMessage(
+        l10nId,
+        'AppException(code: database_open_failed, message: open_failed)',
+      ),
+      l10nId.databaseOpenFailed,
+    );
+  });
+
   test('localizeErrorMessage returns raw message for unknown codes', () {
-    expect(localizeErrorMessage(l10nEn, 'unknown_error_code'), 'unknown_error_code');
-    expect(localizeErrorMessage(l10nEn, 'some failure text'), 'some failure text');
+    expect(localizeErrorMessage(l10nEn, 'unknown_error_code'),
+        'unknown_error_code');
+    expect(
+        localizeErrorMessage(l10nEn, 'some failure text'), 'some failure text');
   });
 }

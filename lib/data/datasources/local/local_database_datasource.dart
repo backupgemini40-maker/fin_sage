@@ -20,12 +20,31 @@ class LocalDatabaseDataSource {
   final SecureKeyService _secureKeyService;
   final DbMigrationService _migrationService;
   Database? _db;
+  Future<Database>? _openingDb;
 
   Future<Database> _database() async {
-    if (_db != null) {
-      return _db!;
+    final cachedDb = _db;
+    if (cachedDb != null) {
+      return cachedDb;
     }
 
+    final activeOpen = _openingDb;
+    if (activeOpen != null) {
+      return activeOpen;
+    }
+
+    final openTask = _openDatabaseSafely();
+    _openingDb = openTask;
+    try {
+      return await openTask;
+    } finally {
+      if (identical(_openingDb, openTask)) {
+        _openingDb = null;
+      }
+    }
+  }
+
+  Future<Database> _openDatabaseSafely() async {
     final folder = await getDatabasesPath();
     await Directory(folder).create(recursive: true);
     final dbPath = p.join(folder, AppConstants.dbName);
@@ -63,9 +82,10 @@ class LocalDatabaseDataSource {
     try {
       for (final key in keysToTry) {
         try {
-          _db = await _openEncryptedDatabase(dbPath, key);
+          final openedDb = await _openEncryptedDatabase(dbPath, key);
+          _db = openedDb;
           await _secureKeyService.persistDbKey(key);
-          return _db!;
+          return openedDb;
         } on DatabaseException catch (e) {
           lastOpenError = e;
         }
@@ -516,9 +536,7 @@ class LocalDatabaseDataSource {
   }
 
   Future<void> replaceDatabaseFile(List<int> bytes) async {
-    final activeDb = _db;
-    _db = null;
-    await activeDb?.close();
+    await _closeActiveDatabase();
 
     final path = await databasePath();
     await _deleteDatabaseFiles(path);
@@ -573,12 +591,26 @@ class LocalDatabaseDataSource {
   }
 
   Future<void> purgeEncryptedDatabase() async {
-    final activeDb = _db;
-    _db = null;
-    await activeDb?.close();
+    await _closeActiveDatabase();
 
     final path = await databasePath();
     await _deleteDatabaseFiles(path);
     await _secureKeyService.deleteDbKey();
+  }
+
+  Future<void> _closeActiveDatabase() async {
+    final opening = _openingDb;
+    if (opening != null) {
+      try {
+        _db = await opening;
+      } catch (_) {
+        // The caller is about to replace or purge the database files.
+      }
+    }
+    _openingDb = null;
+
+    final activeDb = _db;
+    _db = null;
+    await activeDb?.close();
   }
 }

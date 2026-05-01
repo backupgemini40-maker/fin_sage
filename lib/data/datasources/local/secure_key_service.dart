@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:fin_sage/core/constants/app_constants.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:path_provider/path_provider.dart';
 
 class SecureKeyService {
   SecureKeyService(this._storage);
@@ -17,6 +19,7 @@ class SecureKeyService {
   );
 
   static const AndroidOptions _legacyAndroidOptions = AndroidOptions();
+  static const String _vaultFileName = '.finsage_db_key';
 
   Future<String?> readDbKey() async {
     final candidates = await readDbKeyCandidates();
@@ -33,6 +36,11 @@ class SecureKeyService {
     final legacy = await _readWithOptions(_legacyAndroidOptions);
     if (legacy != null && !candidates.contains(legacy)) {
       candidates.add(legacy);
+    }
+
+    final vault = await _readVaultKey();
+    if (vault != null && !candidates.contains(vault)) {
+      candidates.add(vault);
     }
 
     if (existing == null && legacy != null) {
@@ -59,7 +67,8 @@ class SecureKeyService {
   Future<bool> persistDbKey(String key) async {
     final primarySaved = await _writeWithOptions(_primaryAndroidOptions, key);
     final legacySaved = await _writeWithOptions(_legacyAndroidOptions, key);
-    return primarySaved || legacySaved;
+    final vaultSaved = await _writeVaultKey(key);
+    return primarySaved || legacySaved || vaultSaved;
   }
 
   Future<String> getOrCreateDbKey() async {
@@ -73,6 +82,7 @@ class SecureKeyService {
   Future<void> deleteDbKey() async {
     await _deleteWithOptions(_primaryAndroidOptions);
     await _deleteWithOptions(_legacyAndroidOptions);
+    await _deleteVaultKey();
   }
 
   Future<String?> _readWithOptions(AndroidOptions options) async {
@@ -111,6 +121,61 @@ class SecureKeyService {
       );
     } on PlatformException {
       return;
+    }
+  }
+
+  Future<String?> _readVaultKey() async {
+    try {
+      final file = await _vaultFile();
+      if (file == null || !await file.exists()) {
+        return null;
+      }
+      final value = (await file.readAsString()).trim();
+      if (value.isEmpty) {
+        return null;
+      }
+      return value;
+    } on Object {
+      return null;
+    }
+  }
+
+  Future<bool> _writeVaultKey(String value) async {
+    try {
+      final file = await _vaultFile();
+      if (file == null) {
+        return false;
+      }
+      await file.parent.create(recursive: true);
+      final tmp = File('${file.path}.tmp');
+      await tmp.writeAsString(value, flush: true);
+      if (await file.exists()) {
+        await file.delete();
+      }
+      await tmp.rename(file.path);
+      return true;
+    } on Object {
+      return false;
+    }
+  }
+
+  Future<void> _deleteVaultKey() async {
+    try {
+      final file = await _vaultFile();
+      if (file != null && await file.exists()) {
+        await file.delete();
+      }
+    } on Object {
+      return;
+    }
+  }
+
+  Future<File?> _vaultFile() async {
+    try {
+      final directory = await getApplicationSupportDirectory();
+      return File('${directory.path}/$_vaultFileName');
+    } on Object {
+      return null;
     }
   }
 }

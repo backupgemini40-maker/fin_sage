@@ -476,7 +476,7 @@ class _AutoBackupStatus extends StatelessWidget {
             if (error != null && error.isNotEmpty) ...[
               const SizedBox(height: 6),
               Text(
-                l10n.autoBackupLastError(error),
+                l10n.autoBackupLastError(localizeErrorMessage(l10n, error)),
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ],

@@ -13,13 +13,15 @@ class AppLocalizationsId extends AppLocalizations {
   String get unexpectedError => 'Terjadi kesalahan tak terduga';
 
   @override
-  String get databaseOpenFailed => 'Gagal membuka data lokal terenkripsi. Ini bisa terjadi setelah install ulang. Pulihkan dari backup atau reset data lokal.';
+  String get databaseOpenFailed =>
+      'Gagal membuka data lokal terenkripsi. Ini bisa terjadi setelah update atau install ulang. Coba muat ulang, pulihkan backup, atau mulai baru.';
 
   @override
   String get recoveryWelcomeTitle => 'Selamat datang kembali';
 
   @override
-  String get recoveryWelcomeBody => 'Kami mendeteksi data lokal terenkripsi dari instalasi sebelumnya. Pilih mulai baru atau pulihkan dari backup.';
+  String get recoveryWelcomeBody =>
+      'Kami mendeteksi data lokal terenkripsi dari update atau instalasi sebelumnya. Coba muat ulang dulu, lalu pulihkan backup atau mulai baru bila diperlukan.';
 
   @override
   String get recoveryStartNewAction => 'Mulai Baru';
@@ -31,25 +33,30 @@ class AppLocalizationsId extends AppLocalizations {
   String get signInGoogle => 'Masuk dengan Google';
 
   @override
-  String get googleSignInConfigMissing => 'GOOGLE_SERVER_CLIENT_ID belum diisi. Tambahkan di dart-define untuk autentikasi backup Google Drive.';
+  String get googleSignInConfigMissing =>
+      'GOOGLE_SERVER_CLIENT_ID belum diisi. Tambahkan di dart-define untuk autentikasi backup Google Drive.';
 
   @override
-  String get googleAuthUnavailable => 'Autentikasi Google tidak tersedia. Silakan login ulang lalu coba lagi.';
+  String get googleAuthUnavailable =>
+      'Autentikasi Google tidak tersedia. Silakan login ulang lalu coba lagi.';
 
   @override
-  String get googleSignInDeveloperError => 'Konfigurasi Google Sign-In tidak valid (OAuth/SHA-1 tidak cocok). Periksa kredensial Firebase dan Google Cloud.';
+  String get googleSignInDeveloperError =>
+      'Konfigurasi Google Sign-In tidak valid (OAuth/SHA-1 tidak cocok). Periksa kredensial Firebase dan Google Cloud.';
 
   @override
   String get googleSignInTroubleshootTitle => 'Detail setup Google Sign-In';
 
   @override
-  String get googleSignInTroubleshootHint => 'Gunakan Android package dan SHA-1/SHA-256 keystore di bawah ini untuk dicocokkan ke kredensial OAuth Firebase dan Google Cloud.';
+  String get googleSignInTroubleshootHint =>
+      'Gunakan Android package dan SHA-1/SHA-256 keystore di bawah ini untuk dicocokkan ke kredensial OAuth Firebase dan Google Cloud.';
 
   @override
   String get androidApplicationIdLabel => 'Android applicationId';
 
   @override
-  String get serverClientIdConfiguredLabel => 'GOOGLE_SERVER_CLIENT_ID terkonfigurasi';
+  String get serverClientIdConfiguredLabel =>
+      'GOOGLE_SERVER_CLIENT_ID terkonfigurasi';
 
   @override
   String get clientIdConfiguredLabel => 'GOOGLE_CLIENT_ID terkonfigurasi';
@@ -144,7 +151,8 @@ class AppLocalizationsId extends AppLocalizations {
   String get emptyAccounts => 'Belum ada akun';
 
   @override
-  String get emptyAccountsSubtitle => 'Buat akun untuk melacak tunai, bank, dompet, dan kartu.';
+  String get emptyAccountsSubtitle =>
+      'Buat akun untuk melacak tunai, bank, dompet, dan kartu.';
 
   @override
   String get archiveAccountTitle => 'Arsipkan Akun';
@@ -164,10 +172,12 @@ class AppLocalizationsId extends AppLocalizations {
   String get accountNotFound => 'Akun tidak ditemukan';
 
   @override
-  String get accountBalanceNotZero => 'Pindahkan atau kosongkan saldo akun sebelum diarsipkan';
+  String get accountBalanceNotZero =>
+      'Pindahkan atau kosongkan saldo akun sebelum diarsipkan';
 
   @override
-  String get defaultAccountArchiveBlocked => 'Akun default tidak bisa diarsipkan';
+  String get defaultAccountArchiveBlocked =>
+      'Akun default tidak bisa diarsipkan';
 
   @override
   String get dashboardAccountSnapshot => 'Ringkasan Akun';
@@ -185,7 +195,8 @@ class AppLocalizationsId extends AppLocalizations {
   String get positiveCashFlowInsight => 'Arus kas bulan ini positif';
 
   @override
-  String get negativeCashFlowInsight => 'Pengeluaran bulan ini melebihi pemasukan';
+  String get negativeCashFlowInsight =>
+      'Pengeluaran bulan ini melebihi pemasukan';
 
   @override
   String get operationInProgress => 'Memproses permintaan...';
@@ -375,7 +386,8 @@ class AppLocalizationsId extends AppLocalizations {
   String get backupCompleted => 'Backup berhasil';
 
   @override
-  String get autoBackupValidationScheduled => 'Validasi auto-backup telah dijadwalkan';
+  String get autoBackupValidationScheduled =>
+      'Validasi auto-backup telah dijadwalkan';
 
   @override
   String get validateAutoBackupLabel => 'Validasi Auto Backup';
@@ -414,25 +426,29 @@ class AppLocalizationsId extends AppLocalizations {
   String get restoreConfirmTitle => 'Konfirmasi Restore';
 
   @override
-  String get restoreConfirmBody => 'Restore backup akan menimpa data lokal. Lanjutkan?';
+  String get restoreConfirmBody =>
+      'Restore backup akan menimpa data lokal. Lanjutkan?';
 
   @override
   String get backupInvalidFile => 'File backup tidak valid atau rusak';
 
   @override
-  String get backupChecksumMismatch => 'Pemeriksaan integritas backup gagal (checksum tidak cocok)';
+  String get backupChecksumMismatch =>
+      'Pemeriksaan integritas backup gagal (checksum tidak cocok)';
 
   @override
   String get signOutLabel => 'Keluar';
 
   @override
-  String get signOutConfirmBody => 'Kamu akan kembali ke layar login. Lanjutkan?';
+  String get signOutConfirmBody =>
+      'Kamu akan kembali ke layar login. Lanjutkan?';
 
   @override
   String get resetLocalDataLabel => 'Reset Data Lokal';
 
   @override
-  String get resetLocalDataConfirmBody => 'Ini akan menghapus transaksi, anggaran, dan kategori kustom lokal. Lanjutkan?';
+  String get resetLocalDataConfirmBody =>
+      'Ini akan menghapus transaksi, anggaran, dan kategori kustom lokal. Lanjutkan?';
 
   @override
   String get resetActionLabel => 'Reset';
@@ -465,7 +481,8 @@ class AppLocalizationsId extends AppLocalizations {
   String get categoryInUse => 'Kategori masih digunakan oleh transaksi';
 
   @override
-  String get defaultCategoryArchiveBlocked => 'Kategori default tidak bisa diarsipkan';
+  String get defaultCategoryArchiveBlocked =>
+      'Kategori default tidak bisa diarsipkan';
 
   @override
   String get archiveCategoryTitle => 'Arsipkan Kategori';
@@ -491,13 +508,15 @@ class AppLocalizationsId extends AppLocalizations {
   String get confirmDeleteTitle => 'Hapus Transaksi';
 
   @override
-  String get confirmDeleteBody => 'Transaksi ini akan dihapus permanen. Lanjutkan?';
+  String get confirmDeleteBody =>
+      'Transaksi ini akan dihapus permanen. Lanjutkan?';
 
   @override
   String get confirmDeleteBudgetTitle => 'Hapus Anggaran';
 
   @override
-  String get confirmDeleteBudgetBody => 'Anggaran ini akan dihapus permanen. Lanjutkan?';
+  String get confirmDeleteBudgetBody =>
+      'Anggaran ini akan dihapus permanen. Lanjutkan?';
 
   @override
   String get cancelLabel => 'Batal';
@@ -527,7 +546,8 @@ class AppLocalizationsId extends AppLocalizations {
   String get recurringEmptyTitle => 'Belum ada transaksi berulang';
 
   @override
-  String get recurringEmptySubtitle => 'Otomatiskan langganan, tagihan, gaji, dan transfer.';
+  String get recurringEmptySubtitle =>
+      'Otomatiskan langganan, tagihan, gaji, dan transfer.';
 
   @override
   String get recurrenceLabel => 'Pengulangan';
@@ -557,5 +577,6 @@ class AppLocalizationsId extends AppLocalizations {
   String get invalidRRule => 'RRULE tidak valid';
 
   @override
-  String get accountAndCategoryRequired => 'Buat minimal satu kategori dan satu akun terlebih dahulu.';
+  String get accountAndCategoryRequired =>
+      'Buat minimal satu kategori dan satu akun terlebih dahulu.';
 }

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:fin_sage/core/constants/app_constants.dart';
 import 'package:fin_sage/core/constants/google_auth_config.dart';
+import 'package:fin_sage/core/errors/error_mapper.dart';
 import 'package:fin_sage/data/datasources/local/auto_backup_telemetry_storage.dart';
 import 'package:fin_sage/data/datasources/local/db_migration_service.dart';
 import 'package:fin_sage/data/datasources/local/local_database_datasource.dart';
@@ -18,11 +19,13 @@ abstract class AutoBackupValidationScheduler {
   Future<void> scheduleValidationNow();
 }
 
-class WorkmanagerAutoBackupValidationScheduler implements AutoBackupValidationScheduler {
+class WorkmanagerAutoBackupValidationScheduler
+    implements AutoBackupValidationScheduler {
   const WorkmanagerAutoBackupValidationScheduler();
 
   @override
-  Future<void> scheduleValidationNow() => BackupScheduler.scheduleValidationNow();
+  Future<void> scheduleValidationNow() =>
+      BackupScheduler.scheduleValidationNow();
 }
 
 class BackupScheduler {
@@ -85,7 +88,8 @@ Future<bool> _performAutoBackup() async {
     await telemetry.markAttempt(now);
 
     const secureStorage = FlutterSecureStorage();
-    final local = LocalDatabaseDataSource(SecureKeyService(secureStorage), DbMigrationService());
+    final local = LocalDatabaseDataSource(
+        SecureKeyService(secureStorage), DbMigrationService());
     final googleSignIn = GoogleSignIn(
       clientId: Platform.isAndroid ? null : GoogleAuthConfig.clientIdOrNull,
       serverClientId: GoogleAuthConfig.serverClientIdOrNull,
@@ -94,7 +98,8 @@ Future<bool> _performAutoBackup() async {
         'https://www.googleapis.com/auth/drive.appdata',
       ],
     );
-    final remote = GoogleDriveDataSource(googleSignIn, allowInteractiveSignIn: false);
+    final remote =
+        GoogleDriveDataSource(googleSignIn, allowInteractiveSignIn: false);
     final backupRepo = BackupRepositoryImpl(local, remote);
     await backupRepo.backupNow();
     await telemetry.markSuccess(now);
@@ -103,7 +108,7 @@ Future<bool> _performAutoBackup() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final telemetry = SharedPrefsAutoBackupTelemetryStorage(prefs);
-      await telemetry.markFailure(now, e.toString());
+      await telemetry.markFailure(now, mapErrorMessage(e));
     } catch (_) {
       // Ignore telemetry failure to keep the background task result deterministic.
     }

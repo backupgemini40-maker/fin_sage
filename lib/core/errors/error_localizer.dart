@@ -2,6 +2,10 @@ import 'package:fin_sage/core/errors/app_error_codes.dart';
 import 'package:fin_sage/l10n/generated/app_localizations.dart';
 
 String localizeErrorMessage(AppLocalizations l10n, String rawMessage) {
+  if (rawMessage.contains(AppErrorCodes.databaseOpenFailed)) {
+    return l10n.databaseOpenFailed;
+  }
+
   return switch (rawMessage) {
     AppErrorCodes.unexpectedError => l10n.unexpectedError,
     AppErrorCodes.databaseOpenFailed => l10n.databaseOpenFailed,
